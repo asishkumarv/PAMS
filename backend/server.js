@@ -407,8 +407,8 @@ app.get("/api/appointments/:doctorId/:date", async (req, res) => {
 
   const result = await db.query(
     `SELECT * FROM appointments 
-     WHERE doctor_id=$1 AND date=$2
-     ORDER BY start_time`,
+     WHERE doctor_id=$1 AND date=$2 AND status='available'
+     ORDER BY start_time` ,
     [doctorId, date]
   );
 

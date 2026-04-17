@@ -4,6 +4,8 @@ import Layout from "../components/Layout";
 // import { QRCodeCanvas } from "qrcode.react";
 // import { useReactToPrint } from "react-to-print";
 import TokenReceipt from "./TokenReceipt";
+// import DatePicker from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
 
 export default function BookToken() {
 const [form, setForm] = useState({
@@ -48,10 +50,17 @@ useEffect(() => {
 
   // 🟢 Fetch Slots when doctor changes
  const handleDoctor = async (doctorId) => {
-  setForm({ ...form, doctor: doctorId, time_slot: "", appointment_id: "" });
+  const updatedForm = {
+    ...form,
+    doctor: doctorId,
+    time_slot: "",
+    appointment_id: ""
+  };
 
-  if (form.date) {
-    const res = await API.get(`/api/appointments/${doctorId}/${form.date}`);
+  setForm(updatedForm);
+
+  if (updatedForm.date) {
+    const res = await API.get(`/api/appointments/${doctorId}/${updatedForm.date}`);
     setSlots(res.data);
   }
 };
@@ -132,7 +141,17 @@ const handlePrint = () => {
 <input
   type="date"
   className="input mb-3"
-  onChange={(e)=>setForm({...form, date:e.target.value})}
+  onChange={async (e) => {
+    const newDate = e.target.value;
+
+    const updatedForm = { ...form, date: newDate };
+    setForm(updatedForm);
+
+    if (updatedForm.doctor) {
+      const res = await API.get(`/api/appointments/${updatedForm.doctor}/${newDate}`);
+      setSlots(res.data);
+    }
+  }}
 />
         {/* Slots */}
 <select

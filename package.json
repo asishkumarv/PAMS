@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "qrcode.react": "^4.2.0",
+    "react-datepicker": "^4.25.0",
     "react-to-print": "^3.3.0"
   }
 }
