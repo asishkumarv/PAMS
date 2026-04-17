@@ -80,6 +80,7 @@ app.post("/api/patient/login", async (req, res) => {
   console.error("LOGIN ERROR:", err);
   res.status(500).json({ error: err.message });
 }
+});
 
 app.post("/api/patient/register", async (req, res) => {
   try {
