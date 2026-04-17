@@ -427,7 +427,7 @@ app.post("/api/appointments/create", async (req, res) => {
       const s_time = minutesToTime(current);
       const e_time = minutesToTime(next);
 
-      // 🔥 check duplicate
+      // 🔥 prevent duplicates
       const exists = await db.query(
         `SELECT * FROM appointments 
          WHERE doctor_id=$1 AND date=$2 
@@ -450,27 +450,17 @@ app.post("/api/appointments/create", async (req, res) => {
       current = next;
     }
 
-    res.json({
+    return res.json({
       msg: "Slots created successfully ✅",
       slots: createdSlots,
     });
 
   } catch (err) {
     console.error("APPOINTMENT ERROR:", err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 
-    res.json({
-      msg: "Appointment slot created ✅",
-      data: result.rows[0],
-    });
-
-  } catch (err) {
-    console.error("APPOINTMENT ERROR:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
 app.get("/", (req, res) => {
   res.send("API Running ✅");
 });
