@@ -87,6 +87,35 @@ const handleBook = async () => {
       <h1 className="text-xl font-bold mb-4">
         Book Appointment
       </h1>
+{token && (
+  <div className="mt-6 bg-white border border-green-200 p-6 rounded-2xl shadow max-w-xl">
+
+    <h2 className="text-lg font-semibold text-green-600 mb-4">
+      ✅ Booking Confirmed
+    </h2>
+
+    <div className="grid grid-cols-2 gap-3 text-sm">
+
+      <p><b>Token No:</b> {token.token_number}</p>
+      <p><b>Name:</b> {token.patient_name}</p>
+
+      <p><b>Department:</b> {token.dept_name}</p>
+      <p><b>Doctor:</b> {token.doc_name}</p>
+
+      <p><b>Date:</b> {token.date}</p>
+      <p><b>Time:</b> {token.time_slot}</p>
+
+      <p className="col-span-2">
+        <b>Status:</b>
+        <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">
+          {token.status}
+        </span>
+      </p>
+
+    </div>
+
+  </div>
+)}
 
       <div className="bg-white p-6 rounded-xl shadow max-w-xl space-y-3">
 
@@ -154,35 +183,6 @@ const handleBook = async () => {
 </button>
 
       </div>
-{token && (
-  <div className="mt-6 bg-white border border-green-200 p-6 rounded-2xl shadow max-w-xl">
-
-    <h2 className="text-lg font-semibold text-green-600 mb-4">
-      ✅ Booking Confirmed
-    </h2>
-
-    <div className="grid grid-cols-2 gap-3 text-sm">
-
-      <p><b>Token No:</b> {token.token_number}</p>
-      <p><b>Name:</b> {token.patient_name}</p>
-
-      <p><b>Department:</b> {token.dept_name}</p>
-      <p><b>Doctor:</b> {token.doc_name}</p>
-
-      <p><b>Date:</b> {token.date}</p>
-      <p><b>Time:</b> {token.time_slot}</p>
-
-      <p className="col-span-2">
-        <b>Status:</b>
-        <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">
-          {token.status}
-        </span>
-      </p>
-
-    </div>
-
-  </div>
-)}
     </PatientLayout>
   );
 }
