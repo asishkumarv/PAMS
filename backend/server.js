@@ -405,6 +405,65 @@ app.post("/api/tokens/create", async (req, res) => {
   }
 });
 
+app.post("/api/tokens/pcreate", async (req, res) => {
+  try {
+    const { patient_name, mobile, department, doctor, date,time_slot, appointment_id,patient_id } = req.body;
+
+        // 🔥 get doctor + department names
+    const docRes = await db.query(
+      "SELECT name, department_id FROM doctors WHERE id=$1",
+      [doctor]
+    );
+
+    const doctor_name = docRes.rows[0].name;
+    const department_id = docRes.rows[0].department_id;
+
+    const deptRes = await db.query(
+      "SELECT name FROM departments WHERE id=$1",
+      [department]
+    );
+
+    const department_name = deptRes.rows[0].name;
+
+    // 🔴 Check if slot already booked
+    const slot = await db.query(
+      "SELECT * FROM appointments WHERE id=$1",
+      [appointment_id]
+    );
+
+    if (slot.rows[0].status === "BOOKED") {
+      return res.status(400).json({ msg: "Slot already booked ❌" });
+    }
+
+    // 🔢 token number
+    const count = await db.query(
+      "SELECT COUNT(*) FROM tokens WHERE date=$1 AND doctor=$2",
+      [date, doctor]
+    );
+
+    const token_number = parseInt(count.rows[0].count) + 1;
+
+    // 🧾 Insert token
+    const result = await db.query(
+      `INSERT INTO tokens 
+      (patient_name, mobile, department, doctor, date,time_slot, token_number,doc_name, dept_name,patient_id)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name, patient_id]
+    );
+
+    // 🔥 Update slot status
+    await db.query(
+      "UPDATE appointments SET status='BOOKED' WHERE id=$1",
+      [appointment_id]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get("/api/departments", async (req, res) => {
   const result = await db.query("SELECT * FROM departments");

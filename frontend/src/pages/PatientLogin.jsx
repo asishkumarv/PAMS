@@ -25,18 +25,25 @@ export default function PatientLogin() {
       setLoading(false);
     }
   };
-
+// localStorage.setItem("token", res.data.token);
+// localStorage.setItem("patient", JSON.stringify(res.data.user)); 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300 px-4">
 
       {/* Card */}
       <div className="w-full max-w-md bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8">
-
+                <button
+        onClick={() => nav("/stafflogin")}
+        className="w-full py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+      >
+        Staff Login 🏥
+      </button>
         {/* Title */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Welcome Back 👋
+            Welcome 
           </h1>
+
           <p className="text-gray-500 text-sm">
             Login to continue
           </p>

@@ -4,8 +4,6 @@ import PatientLayout from "../components/PatientLayout";
 
 export default function PatientBookToken() {
   const [form, setForm] = useState({
-    patient_name: "",
-    mobile: "",
     department: "",
     doctor: "",
     date: "",
@@ -17,6 +15,23 @@ export default function PatientBookToken() {
   const [doctors, setDoctors] = useState([]);
   const [slots, setSlots] = useState([]);
 
+  const [user, setUser] = useState(null);
+
+  // ✅ get patient from localStorage
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("patient"));
+    setUser(stored);
+  }, []);
+// ✅ ADD THIS
+  if (!user) {
+    return (
+      <PatientLayout>
+        <p className="text-center mt-10 text-gray-500">
+          Loading user...
+        </p>
+      </PatientLayout>
+    );
+  }
   // departments
   useEffect(() => {
     API.get("/api/departments").then(res => setDepartments(res.data));
@@ -24,11 +39,10 @@ export default function PatientBookToken() {
 
   // doctors
   const handleDepartment = async (id) => {
-    setForm({ ...form, department: id, doctor: "", date: "", time_slot: "" });
+    setForm({ ...form, department: id, doctor: "", date: "" });
 
     const res = await API.get(`/api/doctors/${id}`);
     setDoctors(res.data);
-    setSlots([]);
   };
 
   // slots
@@ -40,19 +54,21 @@ export default function PatientBookToken() {
   }, [form.doctor, form.date]);
 
   // booking
-  const handleBook = async () => {
-    if (!form.patient_name || !form.mobile || !form.appointment_id) {
-      alert("Please fill all fields ❌");
-      return;
-    }
+ const handleBook = async () => {
+  if (!user) {
+    alert("User not loaded. Please login again ❌");
+    return;
+  }
 
-    try {
-      await API.post("/api/tokens/pcreate", form);
-      alert("Token Booked ✅");
-    } catch (err) {
-      alert(err.response?.data?.msg || "Booking failed ❌");
-    }
-  };
+  await API.post("/api/tokens/pcreate", {
+    ...form,
+    patient_name: user.name,
+    mobile: user.mobile,
+    patient_id: user.id
+  });
+
+  alert("Token Booked ✅");
+};
 
   return (
     <PatientLayout>
@@ -62,20 +78,6 @@ export default function PatientBookToken() {
       </h1>
 
       <div className="bg-white p-6 rounded-xl shadow max-w-xl space-y-3">
-
-        {/* 🔥 Name */}
-        <input
-          className="input"
-          placeholder="Patient Name"
-          onChange={(e)=>setForm({...form, patient_name:e.target.value})}
-        />
-
-        {/* 🔥 Mobile */}
-        <input
-          className="input"
-          placeholder="Mobile Number"
-          onChange={(e)=>setForm({...form, mobile:e.target.value})}
-        />
 
         {/* Department */}
         <select
