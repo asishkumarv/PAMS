@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import API from "../services/api";
 import PatientLayout from "../components/PatientLayout";
-const [token, setToken] = useState(null);
+
 export default function PatientBookToken() {
   const [form, setForm] = useState({
     patient_name: "",
@@ -17,6 +17,7 @@ export default function PatientBookToken() {
   const [doctors, setDoctors] = useState([]);
   const [slots, setSlots] = useState([]);
 const [user, setUser] = useState(null);
+const [token, setToken] = useState(null);
   // departments
   useEffect(() => {
     API.get("/api/departments").then(res => setDepartments(res.data));
