@@ -383,7 +383,7 @@ app.get("/api/doctors/:deptId", async (req, res) => {
 });
 app.get("/api/appointments/:doctorId", async (req, res) => {
   const result = await db.query(
-    "SELECT * FROM appointments WHERE doctor_id=$1",
+    "SELECT * FROM appointments WHERE doctor_id=$1 AND status='available'",
     [req.params.doctorId]
   );
   res.json(result.rows);
@@ -431,14 +431,14 @@ app.post("/api/appointments/create", async (req, res) => {
       const exists = await db.query(
         `SELECT * FROM appointments 
          WHERE doctor_id=$1 AND date=$2 
-         AND start_time=$3 AND end_time=$4`,
+         AND start_time=$3 AND end_time=$4` ,
         [doctor_id, date, s_time, e_time]
       );
 
       if (exists.rows.length === 0) {
         const result = await db.query(
           `INSERT INTO appointments 
-           (doctor_id, date, start_time, end_time)
+           (doctor_id, date, start_time, end_time, status='available')
            VALUES ($1,$2,$3,$4)
            RETURNING *`,
           [doctor_id, date, s_time, e_time]
