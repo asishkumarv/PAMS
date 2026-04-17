@@ -1,29 +1,28 @@
 import React, { forwardRef } from "react";
-import QRCode from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react";
 
 const TokenReceipt = forwardRef(({ token }, ref) => {
   return (
-    <div ref={ref} className="p-6 w-[300px] bg-white text-black">
+    <div ref={ref} className="p-4 w-[280px] bg-white text-black text-sm">
 
       <h2 className="text-center font-bold text-lg mb-2">
         PAMS Hospital
       </h2>
 
-      <hr className="mb-3" />
+      <hr className="mb-2" />
 
-      <p><b>Token No:</b> {token.token_number}</p>
+      <p><b>Token:</b> {token.token_number}</p>
       <p><b>Name:</b> {token.patient_name}</p>
-      <p><b>Department:</b> {token.department}</p>
+      <p><b>Dept:</b> {token.department}</p>
       <p><b>Doctor:</b> {token.doctor}</p>
       <p><b>Time:</b> {token.time_slot}</p>
-      <p><b>Date:</b> {token.date}</p>
 
-      <div className="flex justify-center mt-4">
-        <QRCode value={JSON.stringify(token)} size={120} />
+      <div className="flex justify-center mt-3">
+        <QRCodeCanvas value={JSON.stringify(token)} size={100} />
       </div>
 
-      <p className="text-center text-xs mt-3">
-        Please arrive before your turn
+      <p className="text-center text-xs mt-2">
+        Please wait for your turn
       </p>
 
     </div>

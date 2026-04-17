@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
-import QRCode from "qrcode.react";
-import { useReactToPrint } from "react-to-print";
-import TokenReceipt from "../components/TokenReceipt";
+import { QRCodeCanvas } from "qrcode.react";
+// import { useReactToPrint } from "react-to-print";
+import TokenReceipt from "./TokenReceipt";
 
 export default function BookToken() {
   const [form, setForm] = useState({
@@ -62,10 +62,23 @@ export default function BookToken() {
     }
   };
 
-  const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
-  });
+//   const handlePrint = useReactToPrint({
+//     content: () => receiptRef.current,
+//   });
+const handlePrint = () => {
+  const printContent = receiptRef.current.innerHTML;
 
+  const win = window.open("", "", "width=400,height=600");
+  win.document.write(`
+    <html>
+      <head><title>Print</title></head>
+      <body>${printContent}</body>
+    </html>
+  `);
+
+  win.document.close();
+  win.print();
+};
   return (
     <Layout>
 
@@ -142,7 +155,7 @@ export default function BookToken() {
           <p><b>Name:</b> {token.patient_name}</p>
           <p><b>Time Slot:</b> {token.time_slot}</p>
 
-          <QRCode value={JSON.stringify(token)} />
+          <QRCodeCanvas value={JSON.stringify(token)} />
 
           <TokenReceipt ref={receiptRef} token={token} />
 
