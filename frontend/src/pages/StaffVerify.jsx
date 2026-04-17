@@ -14,7 +14,7 @@ export default function StaffVerify() {
       await API.post("/api/staff/verify-otp", { email, otp });
 
       alert("Registered successfully ✅");
-      nav("/staff");
+      nav("/stafflogin");
 
     } catch (err) {
       alert("Invalid OTP ❌");
