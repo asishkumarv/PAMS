@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
-import { QRCodeCanvas } from "qrcode.react";
+// import { QRCodeCanvas } from "qrcode.react";
 // import { useReactToPrint } from "react-to-print";
 import TokenReceipt from "./TokenReceipt";
 
 export default function BookToken() {
-  const [form, setForm] = useState({
-    patient_name: "",
-    mobile: "",
-    department: "",
-    doctor: "",
-    time_slot: "",
-  });
+const [form, setForm] = useState({
+  patient_name: "",
+  mobile: "",
+  department: "",
+  doctor: "",
+  time_slot: "",
+  appointment_id: "",
+  date: ""
+});
 
   const [departments, setDepartments] = useState([]);
   const [doctors, setDoctors] = useState([]);
@@ -29,7 +31,12 @@ export default function BookToken() {
       setDepartments(res.data);
     });
   }, []);
-
+useEffect(() => {
+  if (form.doctor && form.date) {
+    API.get(`/api/appointments/${form.doctor}/${form.date}`)
+      .then(res => setSlots(res.data));
+  }
+}, [form.doctor, form.date]);
   // 🟢 Fetch Doctors when department changes
   const handleDepartment = async (deptId) => {
     setForm({ ...form, department: deptId, doctor: "", time_slot: "" });
@@ -40,12 +47,14 @@ export default function BookToken() {
   };
 
   // 🟢 Fetch Slots when doctor changes
-  const handleDoctor = async (doctorId) => {
-    setForm({ ...form, doctor: doctorId, time_slot: "" });
+ const handleDoctor = async (doctorId) => {
+  setForm({ ...form, doctor: doctorId, time_slot: "", appointment_id: "" });
 
-    const res = await API.get(`/api/appointments/${doctorId}`);
+  if (form.date) {
+    const res = await API.get(`/api/appointments/${doctorId}/${form.date}`);
     setSlots(res.data);
-  };
+  }
+};
 
   const handleBook = async () => {
     try {
@@ -120,19 +129,36 @@ const handlePrint = () => {
             <option key={doc.id} value={doc.id}>{doc.name}</option>
           ))}
         </select>
-
+<input
+  type="date"
+  className="input mb-3"
+  onChange={(e)=>setForm({...form, date:e.target.value})}
+/>
         {/* Slots */}
-        <select
-          className="input mb-4"
-          onChange={(e)=>setForm({...form,time_slot:e.target.value})}
-        >
-          <option>Select Time Slot</option>
-          {slots.map(s => (
-            <option key={s.id} value={`${s.start_time}-${s.end_time}`}>
-              {s.start_time} - {s.end_time}
-            </option>
-          ))}
-        </select>
+<select
+  className="input mb-4"
+  onChange={(e)=> {
+    const selected = slots.find(s => s.id == e.target.value);
+
+    setForm({
+      ...form,
+      appointment_id: selected.id,
+      time_slot: `${selected.start_time}-${selected.end_time}`
+    });
+  }}
+>
+  <option>Select Time Slot</option>
+
+  {slots.map(s => (
+    <option
+      key={s.id}
+      value={s.id}
+      disabled={s.status === "BOOKED"}
+    >
+      {s.start_time} - {s.end_time} {s.status === "BOOKED" ? "(Booked)" : ""}
+    </option>
+  ))}
+</select>
 
         <button
           onClick={handleBook}
@@ -155,7 +181,7 @@ const handlePrint = () => {
           <p><b>Name:</b> {token.patient_name}</p>
           <p><b>Time Slot:</b> {token.time_slot}</p>
 
-          <QRCodeCanvas value={JSON.stringify(token)} />
+          {/* <QRCodeCanvas value={JSON.stringify(token)} /> */}
 
           <TokenReceipt ref={receiptRef} token={token} />
 

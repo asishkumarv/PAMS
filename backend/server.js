@@ -347,20 +347,37 @@ app.put("/api/tokens/update", async (req, res) => {
 
 app.post("/api/tokens/create", async (req, res) => {
   try {
-    const { patient_name, mobile, department, doctor, time_slot } = req.body;
+    const { patient_name, mobile, department, doctor, time_slot, appointment_id } = req.body;
 
-    // get next token number
+    // 🔴 Check if slot already booked
+    const slot = await db.query(
+      "SELECT * FROM appointments WHERE id=$1",
+      [appointment_id]
+    );
+
+    if (slot.rows[0].status === "BOOKED") {
+      return res.status(400).json({ msg: "Slot already booked ❌" });
+    }
+
+    // 🔢 token number
     const count = await db.query(
       "SELECT COUNT(*) FROM tokens WHERE date=CURRENT_DATE"
     );
 
     const token_number = parseInt(count.rows[0].count) + 1;
 
+    // 🧾 Insert token
     const result = await db.query(
       `INSERT INTO tokens 
       (patient_name, mobile, department, doctor, time_slot, token_number)
       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
       [patient_name, mobile, department, doctor, time_slot, token_number]
+    );
+
+    // 🔥 Update slot status
+    await db.query(
+      "UPDATE appointments SET status='BOOKED' WHERE id=$1",
+      [appointment_id]
     );
 
     res.json(result.rows[0]);
@@ -370,6 +387,8 @@ app.post("/api/tokens/create", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
 app.get("/api/departments", async (req, res) => {
   const result = await db.query("SELECT * FROM departments");
   res.json(result.rows);
@@ -381,13 +400,22 @@ app.get("/api/doctors/:deptId", async (req, res) => {
   );
   res.json(result.rows);
 });
-app.get("/api/appointments/:doctorId", async (req, res) => {
+
+
+app.get("/api/appointments/:doctorId/:date", async (req, res) => {
+  const { doctorId, date } = req.params;
+
   const result = await db.query(
-    "SELECT * FROM appointments WHERE doctor_id=$1 AND status='available'",
-    [req.params.doctorId]
+    `SELECT * FROM appointments 
+     WHERE doctor_id=$1 AND date=$2
+     ORDER BY start_time`,
+    [doctorId, date]
   );
+
   res.json(result.rows);
 });
+
+
 app.post("/api/appointments/create", async (req, res) => {
   try {
     const { doctor_id, date, start_time, end_time, slot_count } = req.body;
