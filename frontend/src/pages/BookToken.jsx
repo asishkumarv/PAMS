@@ -99,131 +99,142 @@ const handlePrint = () => {
   win.document.close();
   win.print();
 };
-  return (
-    <Layout>
+return (
+  <Layout>
 
-      <h1 className="text-2xl font-bold mb-6">Book Token</h1>
+    <h1 className="text-2xl font-bold mb-6">Book Token</h1>
 
-      {/* FORM */}
-      <div className="bg-white p-6 rounded-xl shadow max-w-xl">
+    {/* ✅ TOKEN DISPLAY (TOP) */}
+    {token && (
+      <div className="mb-6 bg-white border border-green-200 p-6 rounded-2xl shadow max-w-xl mx-auto animate-fade-in">
 
-        <input
-          className="input mb-3"
-          placeholder="Patient Name"
-          onChange={(e)=>setForm({...form,patient_name:e.target.value})}
-        />
+        <h2 className="text-lg font-semibold text-green-600 mb-3 text-center">
+          Token Generated ✅
+        </h2>
 
-        <input
-          className="input mb-3"
-          placeholder="Mobile"
-          onChange={(e)=>setForm({...form,mobile:e.target.value})}
-        />
+        <div className="grid grid-cols-2 gap-2 text-sm">
 
-        {/* Department */}
-        <select
-          className="input mb-3"
-          onChange={(e)=>handleDepartment(e.target.value)}
-        >
-          <option>Select Department</option>
-          {departments.map(d => (
-            <option key={d.id} value={d.id}>{d.name}</option>
-          ))}
-        </select>
+          <p><b>Token:</b> {token.token_number}</p>
+          <p><b>Name:</b> {token.patient_name}</p>
 
-        {/* Doctor */}
-        <select
-          className="input mb-3"
-          onChange={(e)=>handleDoctor(e.target.value)}
-        >
-          <option>Select Doctor</option>
-          {doctors.map(doc => (
-            <option key={doc.id} value={doc.id}>{doc.name}</option>
-          ))}
-        </select>
-<input
-  type="date"
-  className="input mb-3"
-  onChange={async (e) => {
-    const newDate = e.target.value;
+          <p><b>Dept:</b> {token.dept_name}</p>
+          <p><b>Doctor:</b> {token.doc_name}</p>
 
-    const updatedForm = { ...form, date: newDate };
-    setForm(updatedForm);
+          <p className="col-span-2">
+            <b>Time:</b> {token.time_slot}
+          </p>
 
-    if (updatedForm.doctor) {
-      const res = await API.get(`/api/appointments/${updatedForm.doctor}/${newDate}`);
-      setSlots(res.data);
-    }
-  }}
-/>
-        {/* Slots */}
-<select
-  className="input mb-4"
-  onChange={(e)=> {
-    const selected = slots.find(s => s.id == e.target.value);
-
-    setForm({
-      ...form,
-      appointment_id: selected.id,
-      time_slot: `${selected.start_time}-${selected.end_time}`
-    });
-  }}
->
-  <option>Select Time Slot</option>
-
-  {slots.map(s => (
-    <option
-      key={s.id}
-      value={s.id}
-      disabled={s.status === "BOOKED"}
-    >
-      {s.start_time} - {s.end_time} {s.status === "BOOKED" ? "(Booked)" : ""}
-    </option>
-  ))}
-</select>
+        </div>
 
         <button
-          onClick={handleBook}
-          className="btn-primary w-full"
+          onClick={handlePrint}
+          className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
         >
-          {loading ? "Booking..." : "Book Token"}
+          Print Receipt 🖨️
         </button>
 
       </div>
+    )}
 
-      {/* RESULT */}
-      {token && (
-        <div className="mt-6 bg-green-100 p-6 rounded-xl shadow max-w-xl">
+    {/* FORM */}
+    <div className="bg-white p-6 rounded-xl shadow max-w-xl mx-auto">
 
+      <input
+        className="input mb-3"
+        placeholder="Patient Name"
+        onChange={(e)=>setForm({...form,patient_name:e.target.value})}
+      />
 
-<div className="mt-6 bg-white border border-green-200 p-6 rounded-2xl shadow max-w-xl mx-auto">
+      <input
+        className="input mb-3"
+        placeholder="Mobile"
+        onChange={(e)=>setForm({...form,mobile:e.target.value})}
+      />
 
-  <h2 className="text-lg font-semibold text-green-600 mb-3">
-    Token Generated ✅
-  </h2>
+      {/* Department */}
+      <select
+        className="input mb-3"
+        onChange={(e)=>handleDepartment(e.target.value)}
+      >
+        <option>Select Department</option>
+        {departments.map(d => (
+          <option key={d.id} value={d.id}>{d.name}</option>
+        ))}
+      </select>
 
-  <div className="grid grid-cols-2 gap-2 text-sm">
-    <p><b>Token:</b> {token.token_number}</p>
-    <p><b>Name:</b> {token.patient_name}</p>
-    <p><b>Dept:</b> {token.dept_name}</p>
-    <p><b>Doctor:</b> {token.doc_name}</p>
-    <p><b>Time:</b> {token.time_slot}</p>
-  </div>
+      {/* Doctor */}
+      <select
+        className="input mb-3"
+        onChange={(e)=>handleDoctor(e.target.value)}
+      >
+        <option>Select Doctor</option>
+        {doctors.map(doc => (
+          <option key={doc.id} value={doc.id}>{doc.name}</option>
+        ))}
+      </select>
 
-</div>
-          {/* <QRCodeCanvas value={JSON.stringify(token)} /> */}
+      {/* Date */}
+      <input
+        type="date"
+        className="input mb-3"
+        onChange={async (e) => {
+          const newDate = e.target.value;
 
-          <TokenReceipt ref={receiptRef} token={token} />
+          const updatedForm = { ...form, date: newDate };
+          setForm(updatedForm);
 
-          <button
-            onClick={handlePrint}
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg"
+          if (updatedForm.doctor) {
+            const res = await API.get(`/api/appointments/${updatedForm.doctor}/${newDate}`);
+            setSlots(res.data);
+          }
+        }}
+      />
+
+      {/* Slots */}
+      <select
+        className="input mb-4"
+        onChange={(e)=> {
+          const selected = slots.find(s => s.id == e.target.value);
+
+          setForm({
+            ...form,
+            appointment_id: selected.id,
+            time_slot: `${selected.start_time}-${selected.end_time}`
+          });
+        }}
+      >
+        <option>Select Time Slot</option>
+
+        {slots.map(s => (
+          <option
+            key={s.id}
+            value={s.id}
+            disabled={s.status === "BOOKED"}
           >
-            Print Receipt 🖨️
-          </button>
+            {s.start_time} - {s.end_time} {s.status === "BOOKED" ? "(Booked)" : ""}
+          </option>
+        ))}
+      </select>
 
-        </div>
-      )}
+      <button
+        onClick={handleBook}
+        className="w-full py-3 rounded-xl font-semibold text-white 
+                   bg-gradient-to-r from-blue-500 to-indigo-600 
+                   hover:from-blue-600 hover:to-indigo-700 
+                   active:scale-95 transition-all duration-200 shadow-md"
+      >
+        {loading ? "Booking..." : "Book Token 🚀"}
+      </button>
 
-    </Layout>
-  );
+    </div>
+
+    {/* Hidden Receipt */}
+    {token && (
+      <div className="hidden">
+        <TokenReceipt ref={receiptRef} token={token} />
+      </div>
+    )}
+
+  </Layout>
+);
 }
