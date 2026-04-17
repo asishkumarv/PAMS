@@ -377,8 +377,8 @@ app.post("/api/tokens/create", async (req, res) => {
 
     // 🔢 token number
     const count = await db.query(
-      "SELECT COUNT(*) FROM tokens WHERE date=$1",
-      [date]
+      "SELECT COUNT(*) FROM tokens WHERE date=$1 AND doctor=$2",
+      [date, doctor]
     );
 
     const token_number = parseInt(count.rows[0].count) + 1;

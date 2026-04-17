@@ -194,9 +194,6 @@ const handlePrint = () => {
       {token && (
         <div className="mt-6 bg-green-100 p-6 rounded-xl shadow max-w-xl">
 
-          <h2 className="text-xl font-bold mb-3">
-            Token Generated ✅
-          </h2>
 
 <div className="mt-6 bg-white border border-green-200 p-6 rounded-2xl shadow max-w-xl mx-auto">
 
