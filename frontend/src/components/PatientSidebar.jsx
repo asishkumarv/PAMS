@@ -26,12 +26,12 @@ export default function PatientSidebar({ close }) {
 
       <nav className="flex flex-col gap-2">
 
-        <button
+        {/* <button
           onClick={() => nav("/patient/book")}
           className="p-3 rounded-lg hover:bg-blue-100"
         >
           Book Token
-        </button>
+        </button> */}
 
         <button
           onClick={() => nav("/patient/tokens")}
