@@ -13,19 +13,60 @@ app.use(express.json());
 
 app.post("/api/staff/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, secretKey } = req.body;
+
+    // ✅ Secret Key Check
+    if (secretKey !== "PAMS1234") {
+      return res.status(403).json({ msg: "Invalid Secret Key ❌" });
+    }
 
     const hashed = await bcrypt.hash(password, 10);
 
-    const result = await db.query(
-      "INSERT INTO staff (name, email, password) VALUES ($1,$2,$3) RETURNING *",
-      [name, email, hashed]
+    // ✅ Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store temp (you can later move to DB)
+    await db.query(
+      `INSERT INTO staff (name, email, password, otp, is_verified)
+       VALUES ($1,$2,$3,$4,false) RETURNING *`,
+      [name, email, hashed, otp]
     );
 
-    res.json(result.rows[0]);
+    // ✅ Send Email
+    await transporter.sendMail({
+      to: email,
+      subject: "Staff Registration OTP",
+      html: `<h2>Your OTP: ${otp}</h2>`,
+    });
+
+    res.json({ msg: "OTP sent to email ✅" });
+
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
+});
+
+app.post("/api/staff/verify-otp", async (req, res) => {
+  const { email, otp } = req.body;
+
+  const result = await db.query(
+    "SELECT * FROM staff WHERE email=$1",
+    [email]
+  );
+
+  const user = result.rows[0];
+
+  if (!user || user.otp !== otp) {
+    return res.status(400).json({ msg: "Invalid OTP ❌" });
+  }
+
+  await db.query(
+    "UPDATE staff SET is_verified=true, otp=NULL WHERE email=$1",
+    [email]
+  );
+
+  res.json({ msg: "Staff registered successfully ✅" });
 });
 
 
