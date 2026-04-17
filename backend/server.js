@@ -61,25 +61,39 @@ app.post("/api/staff/login", async (req, res) => {
 });
 app.post("/api/patient/login", async (req, res) => {
   try {
-    const { name, mobile } = req.body;
+    const { identifier, password } = req.body;
 
-    let result = await db.query(
-      "SELECT * FROM patients WHERE mobile=$1",
-      [mobile]
-    );
+    const isEmail = identifier.includes("@");
+
+    const query = isEmail
+      ? "SELECT * FROM patients WHERE email=$1"
+      : "SELECT * FROM patients WHERE mobile=$1";
+
+    const result = await db.query(query, [identifier]);
 
     if (result.rows.length === 0) {
-      result = await db.query(
-        "INSERT INTO patients (name, mobile) VALUES ($1,$2) RETURNING *",
-        [name, mobile]
-      );
+      return res.status(404).json({ msg: "User not found ❌" });
     }
 
-    res.json(result.rows[0]);
+    const user = result.rows[0];
+
+    // check password
+    const valid = await bcrypt.compare(password, user.password);
+
+    if (!valid) {
+      return res.status(401).json({ msg: "Invalid password ❌" });
+    }
+
+    if (!user.is_verified) {
+      return res.status(403).json({ msg: "Verify OTP first" });
+    }
+
+    res.json({ msg: "Login success", user });
+
   } catch (err) {
-  console.error("LOGIN ERROR:", err);
-  res.status(500).json({ error: err.message });
-}
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post("/api/patient/register", async (req, res) => {
