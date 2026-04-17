@@ -294,7 +294,100 @@ app.post("/api/patient/login", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get("/api/staff/dashboard", async (req, res) => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
 
+    const total = await db.query(
+      "SELECT COUNT(*) FROM tokens WHERE date=$1",
+      [today]
+    );
+
+    const waiting = await db.query(
+      "SELECT COUNT(*) FROM tokens WHERE status='WAITING' AND date=$1",
+      [today]
+    );
+
+    const completed = await db.query(
+      "SELECT COUNT(*) FROM tokens WHERE status='ARRIVED' AND date=$1",
+      [today]
+    );
+
+    res.json({
+      total: total.rows[0].count,
+      waiting: waiting.rows[0].count,
+      completed: completed.rows[0].count,
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.get("/api/tokens/today", async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT * FROM tokens WHERE date=CURRENT_DATE ORDER BY token_number ASC"
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.put("/api/tokens/update", async (req, res) => {
+  const { id, status } = req.body;
+
+  await db.query(
+    "UPDATE tokens SET status=$1 WHERE id=$2",
+    [status, id]
+  );
+
+  res.json({ msg: "Updated ✅" });
+});
+
+app.post("/api/tokens/create", async (req, res) => {
+  try {
+    const { patient_name, mobile, department, doctor, time_slot } = req.body;
+
+    // get next token number
+    const count = await db.query(
+      "SELECT COUNT(*) FROM tokens WHERE date=CURRENT_DATE"
+    );
+
+    const token_number = parseInt(count.rows[0].count) + 1;
+
+    const result = await db.query(
+      `INSERT INTO tokens 
+      (patient_name, mobile, department, doctor, time_slot, token_number)
+      VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [patient_name, mobile, department, doctor, time_slot, token_number]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+app.get("/api/departments", async (req, res) => {
+  const result = await db.query("SELECT * FROM departments");
+  res.json(result.rows);
+});
+app.get("/api/doctors/:deptId", async (req, res) => {
+  const result = await db.query(
+    "SELECT * FROM doctors WHERE department_id=$1",
+    [req.params.deptId]
+  );
+  res.json(result.rows);
+});
+app.get("/api/appointments/:doctorId", async (req, res) => {
+  const result = await db.query(
+    "SELECT * FROM appointments WHERE doctor_id=$1",
+    [req.params.doctorId]
+  );
+  res.json(result.rows);
+});
 app.get("/", (req, res) => {
   res.send("API Running ✅");
 });

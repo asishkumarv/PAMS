@@ -23,10 +23,12 @@ export default function Sidebar() {
         >
           Dashboard
         </button>
-
-        <button className="text-left p-3 rounded-lg hover:bg-blue-100">
-          Book Token
-        </button>
+        <button onClick={() => nav("/book-token")}>
+  Book Token
+</button>
+        <button onClick={() => nav("/set-appointment")}>
+  Set Appointment
+</button>
 
         <button className="text-left p-3 rounded-lg hover:bg-blue-100">
           My Tokens

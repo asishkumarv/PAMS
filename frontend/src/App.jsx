@@ -8,7 +8,9 @@ import StaffLogin from "./pages/StaffLogin";
 import StaffVerify from "./pages/StaffVerify";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import StaffDashboard from "./pages/StaffDashboard";
+import BookToken from "./pages/BookToken";
+import SetAppointment from "./pages/SetAppointment";
 function App() {
   return (
     <BrowserRouter>
@@ -23,7 +25,9 @@ function App() {
         <Route path="/staffregister" element={<StaffRegister />} />
         <Route path="/stafflogin" element={<StaffLogin />} />
         <Route path="/staffverify" element={<StaffVerify />} />
-
+        <Route path="/sdashboard" element={<StaffDashboard />} />
+        <Route path="/book-token" element={<BookToken />} />
+        <Route path="/set-appointment" element={<SetAppointment />} />
         {/* Protected */}
 <Route
   path="/dashboard"
