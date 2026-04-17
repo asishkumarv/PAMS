@@ -77,9 +77,9 @@ app.post("/api/patient/login", async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+  console.error("LOGIN ERROR:", err);
+  res.status(500).json({ error: err.message });
+}
 
 app.post("/api/patient/register", async (req, res) => {
   try {
@@ -115,6 +115,7 @@ app.post("/api/patient/register", async (req, res) => {
     res.json({ msg: "OTP sent to email ✅" });
 
   } catch (err) {
+    console.error("REGISTER ERROR:", err); // 🔥 VERY IMPORTANT
     res.status(500).json({ error: err.message });
   }
 });
