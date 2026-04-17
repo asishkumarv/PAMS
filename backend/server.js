@@ -57,7 +57,8 @@ app.post("/api/staff/verify-otp", async (req, res) => {
 
   const user = result.rows[0];
 
-  if (!user || user.otp !== otp) {
+  // ✅ FIXED HERE
+  if (!user || String(user.otp) !== String(otp)) {
     return res.status(400).json({ msg: "Invalid OTP ❌" });
   }
 
@@ -68,7 +69,6 @@ app.post("/api/staff/verify-otp", async (req, res) => {
 
   res.json({ msg: "Staff registered successfully ✅" });
 });
-
 
 app.post("/api/staff/login", async (req, res) => {
   try {

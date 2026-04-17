@@ -21,7 +21,7 @@ export default function StaffRegister() {
 
       alert("OTP sent to email ✅");
 
-      nav("/staff-verify", { state: { email: form.email } });
+      nav("/staffverify", { state: { email: form.email } });
 
     } catch (err) {
       alert(err.response?.data?.msg || "Registration failed ❌");
