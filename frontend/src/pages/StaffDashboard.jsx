@@ -73,7 +73,7 @@ export default function StaffDashboard() {
           Live Queue
         </h2>
 
-        <table className="w-full text-sm">
+        <table className="min-w-[600px] w-full text-sm">
 
           <thead className="bg-gray-100 text-gray-600">
             <tr>

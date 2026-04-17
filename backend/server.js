@@ -481,13 +481,15 @@ app.post("/api/appointments/create", async (req, res) => {
       );
 
       if (exists.rows.length === 0) {
-        const result = await db.query(
-          `INSERT INTO appointments 
-           (doctor_id, date, start_time, end_time, status='available')
-           VALUES ($1,$2,$3,$4)
-           RETURNING *`,
-          [doctor_id, date, s_time, e_time]
-        );
+        
+         const result = await db.query(
+  `INSERT INTO appointments 
+   (doctor_id, date, start_time, end_time, status)
+   VALUES ($1,$2,$3,$4,$5)
+   RETURNING *`,
+  [doctor_id, date, s_time, e_time, "available"]
+);
+        
 
         createdSlots.push(result.rows[0]);
       }

@@ -198,10 +198,21 @@ const handlePrint = () => {
             Token Generated ✅
           </h2>
 
-          <p><b>Token No:</b> {token.token_number}</p>
-          <p><b>Name:</b> {token.patient_name}</p>
-          <p><b>Time Slot:</b> {token.time_slot}</p>
+<div className="mt-6 bg-white border border-green-200 p-6 rounded-2xl shadow max-w-xl mx-auto">
 
+  <h2 className="text-lg font-semibold text-green-600 mb-3">
+    Token Generated ✅
+  </h2>
+
+  <div className="grid grid-cols-2 gap-2 text-sm">
+    <p><b>Token:</b> {token.token_number}</p>
+    <p><b>Name:</b> {token.patient_name}</p>
+    <p><b>Dept:</b> {token.dept_name}</p>
+    <p><b>Doctor:</b> {token.doc_name}</p>
+    <p><b>Time:</b> {token.time_slot}</p>
+  </div>
+
+</div>
           {/* <QRCodeCanvas value={JSON.stringify(token)} /> */}
 
           <TokenReceipt ref={receiptRef} token={token} />

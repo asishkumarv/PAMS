@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-export default function Sidebar() {
+export default function Sidebar({ close }) {
   const nav = useNavigate();
 
   const logout = () => {
@@ -8,38 +8,54 @@ export default function Sidebar() {
     nav("/");
   };
 
-  return (
-    <div className="hidden lg:flex flex-col w-64 bg-white shadow-lg p-4">
+  const menu = [
+    { name: "Dashboard", path: "/sdashboard" },
+    { name: "Book Token", path: "/book-token" },
+    { name: "Set Appointment", path: "/set-appointment" },
+    { name: "My Tokens", path: "/my-tokens" },
+  ];
 
-      <h1 className="text-xl font-bold mb-6 text-blue-600">
+  return (
+    <div className="h-full flex flex-col bg-white shadow-lg p-5 w-64">
+
+      {/* 🔥 Mobile Close Button */}
+      {close && (
+        <button
+          onClick={close}
+          className="md:hidden mb-4 text-gray-500 text-sm"
+        >
+          ✖ Close
+        </button>
+      )}
+
+      {/* Logo */}
+      <h1 className="text-2xl font-bold text-blue-600 mb-8">
         PAMS
       </h1>
 
-      <nav className="flex flex-col gap-3">
+      {/* Menu */}
+      <nav className="flex flex-col gap-2">
 
-        <button
-          onClick={() => nav("/dashboard")}
-          className="text-left p-3 rounded-lg hover:bg-blue-100"
-        >
-          Dashboard
-        </button>
-        <button onClick={() => nav("/book-token")}>
-  Book Token
-</button>
-        <button onClick={() => nav("/set-appointment")}>
-  Set Appointment
-</button>
-
-        <button className="text-left p-3 rounded-lg hover:bg-blue-100">
-          My Tokens
-        </button>
+        {menu.map((item, i) => (
+          <button
+            key={i}
+            onClick={() => {
+              nav(item.path);
+              close && close(); // close on mobile click
+            }}
+            className="text-left px-4 py-3 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition"
+          >
+            {item.name}
+          </button>
+        ))}
 
       </nav>
 
-      <div className="mt-auto">
+      {/* Logout */}
+      <div className="mt-auto pt-6">
         <button
           onClick={logout}
-          className="w-full bg-red-500 text-white p-3 rounded-lg"
+          className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl transition"
         >
           Logout
         </button>

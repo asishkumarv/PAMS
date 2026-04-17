@@ -1,12 +1,19 @@
-export default function Navbar() {
+export default function Navbar({ toggleSidebar }) {
   const user = JSON.parse(localStorage.getItem("user"));
 
   return (
-    <div className="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <div className="bg-white shadow px-4 py-3 flex justify-between items-center">
 
-      <h2 className="text-lg font-semibold">
+        <button
+        onClick={toggleSidebar}
+        className="md:hidden text-xl"
+      >
+        ☰
+      </button>
+
+      <h1 className="font-semibold text-gray-700">
         Dashboard
-      </h2>
+      </h1>
 
       <div className="flex items-center gap-3">
         <div className="text-sm text-gray-600">
