@@ -388,6 +388,89 @@ app.get("/api/appointments/:doctorId", async (req, res) => {
   );
   res.json(result.rows);
 });
+app.post("/api/appointments/create", async (req, res) => {
+  try {
+    const { doctor_id, date, start_time, end_time, slot_count } = req.body;
+
+    if (!doctor_id || !date || !start_time || !end_time || !slot_count) {
+      return res.status(400).json({ msg: "Missing fields ❌" });
+    }
+
+    // 🔹 helper functions
+    const timeToMinutes = (t) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    const minutesToTime = (m) => {
+      const h = Math.floor(m / 60);
+      const min = m % 60;
+      return `${h}:${min === 0 ? "00" : min}`;
+    };
+
+    const start = timeToMinutes(start_time);
+    const end = timeToMinutes(end_time);
+
+    if (end <= start) {
+      return res.status(400).json({ msg: "Invalid time range ❌" });
+    }
+
+    const total = end - start;
+    const slotDuration = Math.floor(total / slot_count);
+
+    let current = start;
+    const createdSlots = [];
+
+    for (let i = 0; i < slot_count; i++) {
+      let next = current + slotDuration;
+
+      const s_time = minutesToTime(current);
+      const e_time = minutesToTime(next);
+
+      // 🔥 check duplicate
+      const exists = await db.query(
+        `SELECT * FROM appointments 
+         WHERE doctor_id=$1 AND date=$2 
+         AND start_time=$3 AND end_time=$4`,
+        [doctor_id, date, s_time, e_time]
+      );
+
+      if (exists.rows.length === 0) {
+        const result = await db.query(
+          `INSERT INTO appointments 
+           (doctor_id, date, start_time, end_time)
+           VALUES ($1,$2,$3,$4)
+           RETURNING *`,
+          [doctor_id, date, s_time, e_time]
+        );
+
+        createdSlots.push(result.rows[0]);
+      }
+
+      current = next;
+    }
+
+    res.json({
+      msg: "Slots created successfully ✅",
+      slots: createdSlots,
+    });
+
+  } catch (err) {
+    console.error("APPOINTMENT ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+    res.json({
+      msg: "Appointment slot created ✅",
+      data: result.rows[0],
+    });
+
+  } catch (err) {
+    console.error("APPOINTMENT ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.get("/", (req, res) => {
   res.send("API Running ✅");
 });

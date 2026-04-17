@@ -17,7 +17,7 @@ export default function StaffLogin() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      nav("/dashboard");
+      nav("/sdashboard");
     } catch (err) {
       alert(err.response?.data?.msg || "Login failed ❌");
     } finally {
