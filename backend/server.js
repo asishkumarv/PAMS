@@ -347,7 +347,23 @@ app.put("/api/tokens/update", async (req, res) => {
 
 app.post("/api/tokens/create", async (req, res) => {
   try {
-    const { patient_name, mobile, department, doctor, time_slot, appointment_id } = req.body;
+    const { patient_name, mobile, department, doctor, date,time_slot, appointment_id } = req.body;
+
+        // 🔥 get doctor + department names
+    const docRes = await db.query(
+      "SELECT name, department_id FROM doctors WHERE id=$1",
+      [doctor]
+    );
+
+    const doctor_name = docRes.rows[0].name;
+    const department_id = docRes.rows[0].department_id;
+
+    const deptRes = await db.query(
+      "SELECT name FROM departments WHERE id=$1",
+      [department]
+    );
+
+    const department_name = deptRes.rows[0].name;
 
     // 🔴 Check if slot already booked
     const slot = await db.query(
@@ -361,7 +377,8 @@ app.post("/api/tokens/create", async (req, res) => {
 
     // 🔢 token number
     const count = await db.query(
-      "SELECT COUNT(*) FROM tokens WHERE date=CURRENT_DATE"
+      "SELECT COUNT(*) FROM tokens WHERE date=$1",
+      [date]
     );
 
     const token_number = parseInt(count.rows[0].count) + 1;
@@ -369,9 +386,9 @@ app.post("/api/tokens/create", async (req, res) => {
     // 🧾 Insert token
     const result = await db.query(
       `INSERT INTO tokens 
-      (patient_name, mobile, department, doctor, time_slot, token_number)
-      VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [patient_name, mobile, department, doctor, time_slot, token_number]
+      (patient_name, mobile, department, doctor, date,time_slot, token_number,doc_name, dept_name)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name]
     );
 
     // 🔥 Update slot status

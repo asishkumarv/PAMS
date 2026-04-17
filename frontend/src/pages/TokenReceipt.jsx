@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react";
-import { QRCodeCanvas } from "qrcode.react";
+// import { QRCodeCanvas } from "qrcode.react";
 
 const TokenReceipt = forwardRef(({ token }, ref) => {
   return (
@@ -17,9 +17,9 @@ const TokenReceipt = forwardRef(({ token }, ref) => {
       <p><b>Doctor:</b> {token.doctor}</p>
       <p><b>Time:</b> {token.time_slot}</p>
 
-      <div className="flex justify-center mt-3">
+      {/* <div className="flex justify-center mt-3">
         <QRCodeCanvas value={JSON.stringify(token)} size={100} />
-      </div>
+      </div> */}
 
       <p className="text-center text-xs mt-2">
         Please wait for your turn

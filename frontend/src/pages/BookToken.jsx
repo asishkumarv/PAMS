@@ -13,9 +13,10 @@ const [form, setForm] = useState({
   mobile: "",
   department: "",
   doctor: "",
+  date: "",
   time_slot: "",
-  appointment_id: "",
-  date: ""
+  appointment_id: ""
+  
 });
 
   const [departments, setDepartments] = useState([]);
@@ -53,6 +54,7 @@ useEffect(() => {
   const updatedForm = {
     ...form,
     doctor: doctorId,
+    date: "",       
     time_slot: "",
     appointment_id: ""
   };
