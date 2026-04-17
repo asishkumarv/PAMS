@@ -16,22 +16,13 @@ export default function PatientBookToken() {
   const [slots, setSlots] = useState([]);
 
   const [user, setUser] = useState(null);
+const [token, setToken] = useState(null);
+const [loading, setLoading] = useState(false);
 
   // ✅ get patient from localStorage
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("patient"));
-    setUser(stored);
-  }, []);
+
 // ✅ ADD THIS
-  if (!user) {
-    return (
-      <PatientLayout>
-        <p className="text-center mt-10 text-gray-500">
-          Loading user...
-        </p>
-      </PatientLayout>
-    );
-  }
+
   // departments
   useEffect(() => {
     API.get("/api/departments").then(res => setDepartments(res.data));
@@ -54,25 +45,45 @@ export default function PatientBookToken() {
   }, [form.doctor, form.date]);
 
   // booking
- const handleBook = async () => {
+const handleBook = async () => {
   if (!user) {
     alert("User not loaded. Please login again ❌");
     return;
   }
 
-  await API.post("/api/tokens/pcreate", {
-    ...form,
-    patient_name: user.name,
-    mobile: user.mobile,
-    patient_id: user.id
-  });
+  if (!form.appointment_id) {
+    alert("Please select slot ❌");
+    return;
+  }
 
-  alert("Token Booked ✅");
+  try {
+    setLoading(true);
+
+    const res = await API.post("/api/tokens/pcreate", {
+      ...form,
+      patient_name: user.name,
+      mobile: user.mobile,
+      patient_id: user.id
+    });
+
+    setToken(res.data); // ✅ store token
+  } catch (err) {
+    alert(err.response?.data?.msg || "Booking failed ❌");
+  } finally {
+    setLoading(false);
+  }
 };
 
   return (
     <PatientLayout>
-
+{token && (
+  <button
+    onClick={() => setToken(null)}
+    className="mb-4 text-sm text-blue-600 underline"
+  >
+    + Book Another Appointment
+  </button>
+)}
       <h1 className="text-xl font-bold mb-4">
         Book Appointment
       </h1>
@@ -130,15 +141,48 @@ export default function PatientBookToken() {
           ))}
         </select>
 
-        <button
-          onClick={handleBook}
-          className="btn-primary w-full"
-        >
-          Book Token
-        </button>
+<button
+  onClick={handleBook}
+  disabled={loading}
+  className={`w-full py-3 rounded-xl font-medium transition ${
+    loading
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+  }`}
+>
+  {loading ? "Booking..." : "Book Token"}
+</button>
 
       </div>
+{token && (
+  <div className="mt-6 bg-white border border-green-200 p-6 rounded-2xl shadow max-w-xl">
 
+    <h2 className="text-lg font-semibold text-green-600 mb-4">
+      ✅ Booking Confirmed
+    </h2>
+
+    <div className="grid grid-cols-2 gap-3 text-sm">
+
+      <p><b>Token No:</b> {token.token_number}</p>
+      <p><b>Name:</b> {token.patient_name}</p>
+
+      <p><b>Department:</b> {token.dept_name}</p>
+      <p><b>Doctor:</b> {token.doc_name}</p>
+
+      <p><b>Date:</b> {token.date}</p>
+      <p><b>Time:</b> {token.time_slot}</p>
+
+      <p className="col-span-2">
+        <b>Status:</b>
+        <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">
+          {token.status}
+        </span>
+      </p>
+
+    </div>
+
+  </div>
+)}
     </PatientLayout>
   );
 }

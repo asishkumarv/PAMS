@@ -11,20 +11,26 @@ export default function PatientLogin() {
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
 
-  const login = async () => {
-    try {
-      setLoading(true);
-      const res = await API.post("/api/patient/login", form);
+const login = async () => {
+  try {
+    setLoading(true);
 
-      localStorage.setItem("token", res.data.token);
+    const res = await API.post("/api/patient/login", form);
 
-      nav("/dashboard");
-    } catch (err) {
-      alert(err.response?.data?.msg || "Login failed ❌");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // ✅ Save token
+    localStorage.setItem("token", res.data.token);
+
+    // ✅ 🔥 SAVE USER (THIS IS MISSING)
+    localStorage.setItem("patient", JSON.stringify(res.data.user));
+
+    nav("/dashboard");
+
+  } catch (err) {
+    alert(err.response?.data?.msg || "Login failed ❌");
+  } finally {
+    setLoading(false);
+  }
+};
 // localStorage.setItem("token", res.data.token);
 // localStorage.setItem("patient", JSON.stringify(res.data.user)); 
   return (

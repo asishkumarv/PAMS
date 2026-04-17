@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import API from "../services/api";
 import PatientLayout from "../components/PatientLayout";
-
+const [token, setToken] = useState(null);
 export default function PatientBookToken() {
   const [form, setForm] = useState({
     patient_name: "",
@@ -16,12 +16,16 @@ export default function PatientBookToken() {
   const [departments, setDepartments] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [slots, setSlots] = useState([]);
-
+const [user, setUser] = useState(null);
   // departments
   useEffect(() => {
     API.get("/api/departments").then(res => setDepartments(res.data));
   }, []);
 
+useEffect(() => {
+  const stored = JSON.parse(localStorage.getItem("patient"));
+  setUser(stored);
+}, []);
   // doctors
   const handleDepartment = async (id) => {
     setForm({ ...form, department: id, doctor: "", date: "", time_slot: "" });
@@ -40,19 +44,30 @@ export default function PatientBookToken() {
   }, [form.doctor, form.date]);
 
   // booking
-  const handleBook = async () => {
-    if (!form.patient_name || !form.mobile || !form.appointment_id) {
-      alert("Please fill all fields ❌");
-      return;
-    }
+const handleBook = async () => {
+  if (!form.patient_name || !form.mobile || !form.appointment_id) {
+    alert("Please fill all fields ❌");
+    return;
+  }
 
-    try {
-      await API.post("/api/tokens/pcreate", form);
-      alert("Token Booked ✅");
-    } catch (err) {
-      alert(err.response?.data?.msg || "Booking failed ❌");
-    }
-  };
+  if (!user) {
+    alert("User not found. Please login again ❌");
+    return;
+  }
+
+  try {
+    const res = await API.post("/api/tokens/pcreate", {
+      ...form,
+      patient_id: user.id   // ✅ AUTO ADD
+    });
+
+    setToken(res.data);
+    alert("Token Booked ✅");
+
+  } catch (err) {
+    alert(err.response?.data?.msg || "Booking failed ❌");
+  }
+};
 
   return (
     <PatientLayout>
@@ -128,15 +143,46 @@ export default function PatientBookToken() {
           ))}
         </select>
 
-        <button
-          onClick={handleBook}
-          className="btn-primary w-full"
-        >
-          Book Token
-        </button>
+ <button
+  onClick={handleBook}
+  className="w-full py-3 rounded-xl font-semibold text-white 
+             bg-gradient-to-r from-blue-500 to-indigo-600 
+             hover:from-blue-600 hover:to-indigo-700 
+             active:scale-95 transition-all duration-200 shadow-md"
+>
+  Book Token 🚀
+</button>
 
       </div>
+{token && (
+  <div className="mt-6 bg-white border border-green-200 p-6 rounded-2xl shadow max-w-xl mx-auto">
 
+    <h2 className="text-lg font-semibold text-green-600 mb-4 text-center">
+      Token Booked Successfully ✅
+    </h2>
+
+    <div className="grid grid-cols-2 gap-3 text-sm">
+
+      <p><b>Token No:</b> {token.token_number}</p>
+      <p><b>Name:</b> {token.patient_name}</p>
+
+      <p><b>Department:</b> {token.dept_name}</p>
+      <p><b>Doctor:</b> {token.doc_name}</p>
+
+      <p><b>Date:</b> {token.date}</p>
+      <p><b>Time:</b> {token.time_slot}</p>
+
+      <p className="col-span-2">
+        <b>Status:</b>{" "}
+        <span className="text-yellow-600 font-semibold">
+          {token.status}
+        </span>
+      </p>
+
+    </div>
+
+  </div>
+)}
     </PatientLayout>
   );
 }
