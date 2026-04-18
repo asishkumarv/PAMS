@@ -407,7 +407,7 @@ app.post("/api/tokens/create", async (req, res) => {
 
 app.post("/api/tokens/pcreate", async (req, res) => {
   try {
-    const { patient_name, mobile, department, doctor, date,time_slot, appointment_id,patient_id ,eamil} = req.body;
+    const { patient_name, mobile, department, doctor, date,time_slot, appointment_id,patient_id ,email} = req.body;
 
         // 🔥 get doctor + department names
     const docRes = await db.query(
