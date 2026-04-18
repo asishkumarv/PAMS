@@ -59,7 +59,7 @@ export default function MyTokens() {
       {/* TOKEN CARDS */}
       <div className="space-y-4">
         {tokens.map((t) => {
-          const isCancelled = t.status === "CANCELLED";
+          const isDisabled = t.status === "CANCELLED" || t.status === "ARRIVED";
 
           return (
             <div
@@ -88,17 +88,21 @@ export default function MyTokens() {
               <p className="text-sm">📅 {t.date}</p>
               <p className="text-sm mb-3">⏰ {t.time_slot}</p>
 
-              <button
-                disabled={isCancelled}
-                onClick={() => cancelToken(t.id)}
-                className={`w-full py-2 rounded-lg text-sm text-white ${
-                  isCancelled
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600"
-                }`}
-              >
-                {isCancelled ? "Cancelled" : "Cancel Token"}
-              </button>
+ <button
+  disabled={t.status === "CANCELLED" || t.status === "ARRIVED"}
+  onClick={() => cancelToken(t.id)}
+  className={`w-full py-2 rounded-lg text-sm text-white ${
+    t.status === "CANCELLED" || t.status === "ARRIVED"
+      ? "bg-gray-300 cursor-not-allowed"
+      : "bg-red-500 hover:bg-red-600"
+  }`}
+>
+  {t.status === "CANCELLED"
+    ? "Cancelled"
+    : t.status === "ARRIVED"
+    ? "Already Arrived"
+    : "Cancel Token"}
+</button>
             </div>
           );
         })}

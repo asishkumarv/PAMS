@@ -38,12 +38,12 @@ export default function PatientSidebar({ close }) {
       <nav className="flex flex-col gap-2">
 
         {/* Book Token */}
-        {/* <button
-          onClick={() => nav("/patient/book")}
-          className={menuClass("/patient/book")}
+        <button
+          onClick={() => nav("/dashboard")}
+          className={menuClass("/dashboard")}
         >
           ➕ Book Token
-        </button> */}
+        </button>
 
         {/* My Tokens */}
         <button

@@ -22,7 +22,7 @@ const login = async () => {
 
     // ✅ 🔥 SAVE USER (THIS IS MISSING)
     localStorage.setItem("patient", JSON.stringify(res.data.user));
-
+    localStorage.setItem("user", JSON.stringify(res.data.user));
     nav("/dashboard");
 
   } catch (err) {
