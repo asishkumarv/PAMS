@@ -59,7 +59,8 @@ const handleBook = async () => {
   try {
     const res = await API.post("/api/tokens/pcreate", {
       ...form,
-      patient_id: user.id   // ✅ AUTO ADD
+      patient_id: user.id  ,
+      email: user.email // ✅ AUTO ADD
     });
 
     setToken(res.data);

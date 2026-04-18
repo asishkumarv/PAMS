@@ -66,7 +66,7 @@ const handleBook = async () => {
       patient_id: user.id,
       email: user.email
     });
-
+console.log(user);
     setToken(res.data); // ✅ store token
   } catch (err) {
     alert(err.response?.data?.msg || "Booking failed ❌");
