@@ -407,7 +407,7 @@ app.post("/api/tokens/create", async (req, res) => {
 
 app.post("/api/tokens/pcreate", async (req, res) => {
   try {
-    const { patient_name, mobile, department, doctor, date,time_slot, appointment_id,patient_id } = req.body;
+    const { patient_name, mobile, department, doctor, date,time_slot, appointment_id,patient_id ,eamil} = req.body;
 
         // 🔥 get doctor + department names
     const docRes = await db.query(
@@ -450,13 +450,33 @@ app.post("/api/tokens/pcreate", async (req, res) => {
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
       [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name, patient_id]
     );
-
+const token = result.rows[0];
     // 🔥 Update slot status
     await db.query(
       "UPDATE appointments SET status='BOOKED' WHERE id=$1",
       [appointment_id]
     );
+if (email) {
+      await transporter.sendMail({
+        from: "yourgmail@gmail.com",
+        to: email,
+        subject: "Appointment Confirmation",
+        html: `
+          <div style="font-family:sans-serif;padding:20px">
+            <h2 style="color:green;">Appointment Confirmed ✅</h2>
+            <hr/>
+            <p><b>Token:</b> ${token.token_number}</p>
+            <p><b>Name:</b> ${token.patient_name}</p>
+            <p><b>Doctor:</b> ${token.doc_name}</p>
+            <p><b>Department:</b> ${token.dept_name}</p>
+            <p><b>Date:</b> ${token.date}</p>
+            <p><b>Time:</b> ${token.time_slot}</p>
+          </div>
+        `
+      });
+    }
 
+    res.json(token);
     res.json(result.rows[0]);
 
   } catch (err) {

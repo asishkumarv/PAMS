@@ -63,7 +63,8 @@ const handleBook = async () => {
       ...form,
       patient_name: user.name,
       mobile: user.mobile,
-      patient_id: user.id
+      patient_id: user.id,
+      email: user.email
     });
 
     setToken(res.data); // ✅ store token
