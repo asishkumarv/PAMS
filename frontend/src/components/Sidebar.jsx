@@ -12,7 +12,7 @@ export default function Sidebar({ close }) {
     { name: "Dashboard", path: "/sdashboard" },
     { name: "Book Token", path: "/book-token" },
     { name: "Set Appointment", path: "/set-appointment" },
-    { name: "My Tokens", path: "/my-tokens" },
+    
   ];
 
   return (

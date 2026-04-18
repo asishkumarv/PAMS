@@ -132,11 +132,30 @@ return (
         >
           Print Receipt 🖨️
         </button>
-
+<button
+  onClick={() => {
+    setToken(null);
+    setForm({
+      patient_name: "",
+      mobile: "",
+      department: "",
+      doctor: "",
+      date: "",
+      time_slot: "",
+      appointment_id: ""
+    });
+    setDoctors([]);
+    setSlots([]);
+  }}
+  className="mt-3 w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 transition"
+>
+  Book Another Token ➕
+</button>
       </div>
     )}
 
     {/* FORM */}
+    {!token && (
     <div className="bg-white p-6 rounded-xl shadow max-w-xl mx-auto">
 
       <input
@@ -174,47 +193,72 @@ return (
       </select>
 
       {/* Date */}
-      <input
-        type="date"
-        className="input mb-3"
-        onChange={async (e) => {
-          const newDate = e.target.value;
+     {/* Date */}
+<input
+  type="date"
+  className="input mb-3"
+  onChange={(e) =>
+    setForm({ ...form, date: e.target.value })
+  }
+/>
 
-          const updatedForm = { ...form, date: newDate };
-          setForm(updatedForm);
+{/* Fetch Button */}
+<button
+  onClick={async () => {
+    if (!form.doctor || !form.date) {
+      alert("Select doctor and date first");
+      return;
+    }
 
-          if (updatedForm.doctor) {
-            const res = await API.get(`/api/appointments/${updatedForm.doctor}/${newDate}`);
-            setSlots(res.data);
-          }
-        }}
-      />
+    const res = await API.get(
+      `/api/appointments/${form.doctor}/${form.date}`
+    );
+    setSlots(res.data);
+  }}
+  className="w-full mb-4 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+>
+  Fetch Slots 🔍
+</button>
 
       {/* Slots */}
-      <select
-        className="input mb-4"
-        onChange={(e)=> {
-          const selected = slots.find(s => s.id == e.target.value);
+ {/* Slots as Boxes */}
+<div className="grid grid-cols-3 gap-3 mb-4">
+  {slots.length === 0 && (
+    <p className="col-span-3 text-center text-gray-500">
+      No slots available
+    </p>
+  )}
 
+  {slots.map((s) => {
+    const isBooked = s.status === "BOOKED";
+
+    return (
+      <button
+        key={s.id}
+        disabled={isBooked}
+        onClick={() =>
           setForm({
             ...form,
-            appointment_id: selected.id,
-            time_slot: `${selected.start_time}-${selected.end_time}`
-          });
-        }}
+            appointment_id: s.id,
+            time_slot: `${s.start_time}-${s.end_time}`,
+          })
+        }
+        className={`p-3 rounded-lg text-sm font-medium border transition
+          ${
+            isBooked
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : form.appointment_id === s.id
+              ? "bg-blue-600 text-white"
+              : "bg-white hover:bg-blue-100"
+          }
+        `}
       >
-        <option>Select Time Slot</option>
-
-        {slots.map(s => (
-          <option
-            key={s.id}
-            value={s.id}
-            disabled={s.status === "BOOKED"}
-          >
-            {s.start_time} - {s.end_time} {s.status === "BOOKED" ? "(Booked)" : ""}
-          </option>
-        ))}
-      </select>
+        {s.start_time} - {s.end_time}
+        {isBooked && <div className="text-xs">(Booked)</div>}
+      </button>
+    );
+  })}
+</div>
 
       <button
         onClick={handleBook}
@@ -227,13 +271,13 @@ return (
       </button>
 
     </div>
-
-    {/* Hidden Receipt */}
-    {token && (
-      <div className="hidden">
-        <TokenReceipt ref={receiptRef} token={token} />
-      </div>
     )}
+    {/* Hidden Receipt */}
+ {token && (
+  <div className="hidden">
+    <TokenReceipt ref={receiptRef} token={token} />
+  </div>
+)}
 
   </Layout>
 );
