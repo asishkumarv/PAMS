@@ -476,7 +476,7 @@ if (email) {
       });
     }
 
-    res.json(token);
+    // res.json(token);
     res.json(result.rows[0]);
 
   } catch (err) {
