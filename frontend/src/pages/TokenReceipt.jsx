@@ -17,6 +17,7 @@ const TokenReceipt = forwardRef(({ token }, ref) => {
       <p><b>Dept name:</b> {token.dept_name}</p>
       <p><b>Doctor:</b> {token.doctor}</p>
       <p><b>Doctorname :</b> {token.doc_name}</p>
+      <p><b>Date:</b> {token.date}</p>
       <p><b>Time:</b> {token.time_slot}</p>
 
       {/* <div className="flex justify-center mt-3">
