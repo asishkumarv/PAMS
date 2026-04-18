@@ -125,7 +125,9 @@ const handleBook = async () => {
 )}
 {!token && (
       <div className="bg-white p-6 rounded-xl shadow max-w-xl space-y-3">
-
+<h1 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800 bg-gray-100 px-4 py-2 rounded-lg">
+  Book Token
+</h1>
         {/* 🔥 Name */}
         <input
           className="input"

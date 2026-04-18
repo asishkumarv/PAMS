@@ -20,10 +20,29 @@ const [selectedDate, setSelectedDate] = useState("");
     setTokens(res2.data);
   };
 
-  const updateStatus = async (id, status) => {
+const updateStatus = async (id, status) => {
+  const actionText = status === "ARRIVED" ? "mark as ARRIVED" : "cancel this token";
+
+  const confirmAction = window.confirm(
+    `Are you sure you want to ${actionText}?`
+  );
+
+  if (!confirmAction) return;
+
+  try {
     await API.put("/api/tokens/update", { id, status });
+
+    alert(
+      status === "ARRIVED"
+        ? "Token marked as ARRIVED ✅"
+        : "Token cancelled successfully ❌"
+    );
+
     fetchData();
-  };
+  } catch (err) {
+    alert("Update failed ❌");
+  }
+};
 
 useEffect(() => {
   fetchData();
@@ -99,7 +118,7 @@ const filteredTokens = tokens.filter(t => {
 <h2 className="text-lg font-bold mb-4 text-gray-800 bg-gray-100 px-3 py-2 rounded-lg">
   Live Queue
 </h2>
-    <div className="bg-white p-4 rounded-xl shadow mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="bg-white p-4 rounded-xl shadow mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
 
   {/* Department Filter */}
   <select
@@ -135,12 +154,12 @@ const filteredTokens = tokens.filter(t => {
     onChange={(e) => setSearch(e.target.value)}
     className="input w-full"
   />
-<input
+{/* <input
   type="date"
   className="input w-full"
   value={selectedDate}
   onChange={(e) => setSelectedDate(e.target.value)}
-/>
+/> */}
 </div>
 <div className="hidden md:block">
         <table className="min-w-[600px] w-full text-sm">
@@ -151,7 +170,9 @@ const filteredTokens = tokens.filter(t => {
               <th className="p-3 text-left">Patient</th>
               <th className="p-3 text-left">Department</th>
               <th className="p-3 text-left">Doctor</th>
+              <th className="p-3 text-left">Slot time</th>
               <th className="p-3 text-left">Status</th>
+              
               <th className="p-3 text-left">Actions</th>
             </tr>
           </thead>
@@ -173,6 +194,7 @@ const filteredTokens = tokens.filter(t => {
         <td className="p-3">{t.patient_name}</td>
         <td className="p-3">{t.dept_name}</td>
         <td className="p-3">{t.doc_name}</td>
+        <td className="p-3">{t.time_slot}</td>
 
         <td className="p-3">
           <span

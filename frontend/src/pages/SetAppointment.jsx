@@ -94,9 +94,9 @@ await API.post("/api/appointments/create", {
         {/* CARD */}
         <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
 
-          <h1 className="text-xl sm:text-2xl font-bold mb-4">
-            Setup Appointments
-          </h1>
+ <h1 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800 bg-gray-100 px-4 py-2 rounded-lg">
+  Setup Appointments
+</h1>
 
           {/* GRID FORM */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

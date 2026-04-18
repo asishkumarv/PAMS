@@ -30,18 +30,24 @@ export default function MyTokens() {
   }, [user]);
 
   // ✅ Cancel token
-  const cancelToken = async (id) => {
-    try {
-      await API.put("/api/tokens/update", {
-        id,
-        status: "CANCELLED",
-      });
+const cancelToken = async (id) => {
+  const confirmCancel = window.confirm("Are you sure you want to cancel this token?");
 
-      fetchTokens(user.id); // refresh
-    } catch (err) {
-      alert("Cancel failed ❌");
-    }
-  };
+  if (!confirmCancel) return;
+
+  try {
+    await API.put("/api/tokens/update", {
+      id,
+      status: "CANCELLED",
+    });
+
+    alert("Token cancelled successfully ✅");
+
+    fetchTokens(user.id);
+  } catch (err) {
+    alert("Cancel failed ❌");
+  }
+};
 
   return (
     <PatientLayout>
