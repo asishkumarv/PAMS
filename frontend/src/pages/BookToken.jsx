@@ -121,6 +121,7 @@ return (
           <p><b>Doctor:</b> {token.doc_name}</p>
 
           <p className="col-span-2">
+            <b>Date:</b> {token.date}
             <b>Time:</b> {token.time_slot}
           </p>
 
