@@ -470,12 +470,10 @@ app.get("/api/tokens/patient/:id", async (req, res) => {
   const { id } = req.params;
 
   const result = await db.query(
-    `SELECT t.*, d.name as dept_name, doc.name as doc_name
-     FROM tokens t
-     JOIN departments d ON t.department_id = d.id
-     JOIN doctors doc ON t.doctor_id = doc.id
-     WHERE t.patient_id = $1
-     ORDER BY t.date DESC`,
+    `SELECT *
+     FROM tokens
+     WHERE patient_id = $1
+     ORDER BY date DESC`,
     [id]
   );
 
