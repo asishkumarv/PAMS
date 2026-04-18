@@ -347,7 +347,7 @@ app.put("/api/tokens/update", async (req, res) => {
 
 app.post("/api/tokens/create", async (req, res) => {
   try {
-    const { patient_name, mobile, department, doctor, date,time_slot, appointment_id } = req.body;
+    const { patient_name, mobile,email, department, doctor, date,time_slot, appointment_id } = req.body;
 
         // 🔥 get doctor + department names
     const docRes = await db.query(
@@ -390,12 +390,93 @@ app.post("/api/tokens/create", async (req, res) => {
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
       [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name]
     );
-
+const token = result.rows[0];
     // 🔥 Update slot status
     await db.query(
       "UPDATE appointments SET status='BOOKED' WHERE id=$1",
       [appointment_id]
     );
+
+if (email) {
+  await transporter.sendMail({
+    from: "yourgmail@gmail.com",
+    to: email,
+    subject: "Appointment Confirmation ✅",
+    html: `
+      <div style="background:#f4f6f8;padding:20px;font-family:Arial, sans-serif;">
+        
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+          
+          <!-- HEADER -->
+          <tr>
+            <td style="background:linear-gradient(90deg,#2563eb,#4f46e5);color:white;padding:20px;text-align:center;">
+              <h2 style="margin:0;">🏥 Appointment Confirmed</h2>
+              <p style="margin:5px 0 0;font-size:14px;">Your booking is successful</p>
+            </td>
+          </tr>
+
+          <!-- BODY -->
+          <tr>
+            <td style="padding:20px;">
+              
+              <table width="100%" cellpadding="8" cellspacing="0" style="font-size:14px;color:#333;">
+                
+                <tr>
+                  <td style="font-weight:bold;">Token Number</td>
+                  <td style="color:#2563eb;font-weight:bold;">#${token.token_number}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Patient Name</td>
+                  <td>${token.patient_name}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Doctor</td>
+                  <td>${token.doc_name}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Department</td>
+                  <td>${token.dept_name}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Date</td>
+                  <td>${token.date}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Time</td>
+                  <td>${token.time_slot}</td>
+                </tr>
+
+              </table>
+
+              <!-- STATUS BADGE -->
+              <div style="margin-top:20px;text-align:center;">
+                <span style="background:#facc15;color:#92400e;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:bold;">
+                  ${token.status}
+                </span>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#f9fafb;padding:15px;text-align:center;font-size:12px;color:#666;">
+              <p style="margin:0;">Please arrive 10 minutes before your slot.</p>
+              <p style="margin:5px 0 0;">Thank you for choosing our service 🙏</p>
+            </td>
+          </tr>
+
+        </table>
+
+      </div>
+    `
+  });
+}
 
     res.json(result.rows[0]);
 
@@ -457,24 +538,85 @@ const token = result.rows[0];
       [appointment_id]
     );
 if (email) {
-      await transporter.sendMail({
-        from: "yourgmail@gmail.com",
-        to: email,
-        subject: "Appointment Confirmation",
-        html: `
-          <div style="font-family:sans-serif;padding:20px">
-            <h2 style="color:green;">Appointment Confirmed ✅</h2>
-            <hr/>
-            <p><b>Token:</b> ${token.token_number}</p>
-            <p><b>Name:</b> ${token.patient_name}</p>
-            <p><b>Doctor:</b> ${token.doc_name}</p>
-            <p><b>Department:</b> ${token.dept_name}</p>
-            <p><b>Date:</b> ${token.date}</p>
-            <p><b>Time:</b> ${token.time_slot}</p>
-          </div>
-        `
-      });
-    }
+  await transporter.sendMail({
+    from: "yourgmail@gmail.com",
+    to: email,
+    subject: "Appointment Confirmation ✅",
+    html: `
+      <div style="background:#f4f6f8;padding:20px;font-family:Arial, sans-serif;">
+        
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+          
+          <!-- HEADER -->
+          <tr>
+            <td style="background:linear-gradient(90deg,#2563eb,#4f46e5);color:white;padding:20px;text-align:center;">
+              <h2 style="margin:0;">🏥 Appointment Confirmed</h2>
+              <p style="margin:5px 0 0;font-size:14px;">Your booking is successful</p>
+            </td>
+          </tr>
+
+          <!-- BODY -->
+          <tr>
+            <td style="padding:20px;">
+              
+              <table width="100%" cellpadding="8" cellspacing="0" style="font-size:14px;color:#333;">
+                
+                <tr>
+                  <td style="font-weight:bold;">Token Number</td>
+                  <td style="color:#2563eb;font-weight:bold;">#${token.token_number}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Patient Name</td>
+                  <td>${token.patient_name}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Doctor</td>
+                  <td>${token.doc_name}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Department</td>
+                  <td>${token.dept_name}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Date</td>
+                  <td>${token.date}</td>
+                </tr>
+
+                <tr>
+                  <td style="font-weight:bold;">Time</td>
+                  <td>${token.time_slot}</td>
+                </tr>
+
+              </table>
+
+              <!-- STATUS BADGE -->
+              <div style="margin-top:20px;text-align:center;">
+                <span style="background:#facc15;color:#92400e;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:bold;">
+                  ${token.status}
+                </span>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#f9fafb;padding:15px;text-align:center;font-size:12px;color:#666;">
+              <p style="margin:0;">Please arrive 10 minutes before your slot.</p>
+              <p style="margin:5px 0 0;">Thank you for choosing our service 🙏</p>
+            </td>
+          </tr>
+
+        </table>
+
+      </div>
+    `
+  });
+}
 
     // res.json(token);
     res.json(result.rows[0]);

@@ -139,6 +139,7 @@ return (
     setForm({
       patient_name: "",
       mobile: "",
+      email: "",
       department: "",
       doctor: "",
       date: "",
@@ -172,7 +173,11 @@ return (
         placeholder="Mobile"
         onChange={(e)=>setForm({...form,mobile:e.target.value})}
       />
-
+      <input
+        className="input mb-3"
+        placeholder="Email"
+        onChange={(e)=>setForm({...form,email:e.target.value})}
+      />
       {/* Department */}
       <select
         className="input mb-3"
