@@ -12,6 +12,8 @@ import StaffDashboard from "./pages/StaffDashboard";
 import BookToken from "./pages/BookToken";
 import SetAppointment from "./pages/SetAppointment";
 import PatientBookToken from "./pages/PatientBookToken";
+import MyTokens from "./pages/MyTokens";
+
 function App() {
   return (
     <BrowserRouter>
@@ -40,7 +42,7 @@ function App() {
     
   }
 />
-
+<Route path="/my-tokens" element={<MyTokens />} />
       </Routes>
     </BrowserRouter>
   );

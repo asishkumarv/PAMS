@@ -37,12 +37,12 @@ useEffect(() => {
   };
 
   // slots
-  useEffect(() => {
-    if (form.doctor && form.date) {
-      API.get(`/api/appointments/${form.doctor}/${form.date}`)
-        .then(res => setSlots(res.data));
-    }
-  }, [form.doctor, form.date]);
+  // useEffect(() => {
+  //   if (form.doctor && form.date) {
+  //     API.get(`/api/appointments/${form.doctor}/${form.date}`)
+  //       .then(res => setSlots(res.data));
+  //   }
+  // }, [form.doctor, form.date]);
 
   // booking
 const handleBook = async () => {
@@ -77,35 +77,53 @@ const handleBook = async () => {
         Book Appointment
       </h1>
 {token && (
-  <div className="mt-6 bg-white border border-green-200 p-6 rounded-2xl shadow max-w-xl mx-auto">
+  <div className="mt-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-2xl shadow-lg max-w-xl mx-auto">
 
-    <h2 className="text-lg font-semibold text-green-600 mb-4 text-center">
-      Token Booked Successfully ✅
+    <h2 className="text-xl font-bold text-center mb-4">
+      🎉 Token Confirmed
     </h2>
 
     <div className="grid grid-cols-2 gap-3 text-sm">
 
-      <p><b>Token No:</b> {token.token_number}</p>
+      <p><b>Token:</b> #{token.token_number}</p>
       <p><b>Name:</b> {token.patient_name}</p>
 
-      <p><b>Department:</b> {token.dept_name}</p>
+      <p><b>Dept:</b> {token.dept_name}</p>
       <p><b>Doctor:</b> {token.doc_name}</p>
 
       <p><b>Date:</b> {token.date}</p>
       <p><b>Time:</b> {token.time_slot}</p>
 
-      <p className="col-span-2">
-        <b>Status:</b>{" "}
-        <span className="text-yellow-600 font-semibold">
-          {token.status}
-        </span>
+      <p className="col-span-2 text-center mt-2 text-lg font-semibold">
+        Status: {token.status}
       </p>
 
     </div>
 
+    {/* 🔥 BOOK AGAIN BUTTON */}
+    <button
+      onClick={() => {
+        setToken(null);
+        setForm({
+          patient_name: "",
+          mobile: "",
+          department: "",
+          doctor: "",
+          date: "",
+          time_slot: "",
+          appointment_id: ""
+        });
+        setDoctors([]);
+        setSlots([]);
+      }}
+      className="mt-5 w-full bg-white text-green-600 py-2 rounded-lg font-semibold hover:bg-gray-100"
+    >
+      Book Another Token ➕
+    </button>
+
   </div>
 )}
-
+{!token && (
       <div className="bg-white p-6 rounded-xl shadow max-w-xl space-y-3">
 
         {/* 🔥 Name */}
@@ -145,33 +163,64 @@ const handleBook = async () => {
         </select>
 
         {/* Date */}
-        <input
-          type="date"
-          className="input"
-          onChange={(e)=>setForm({...form, date:e.target.value})}
-        />
+<input
+  type="date"
+  className="input"
+  onChange={(e)=>setForm({...form, date:e.target.value})}
+/>
+
+<button
+  onClick={async () => {
+    if (!form.doctor || !form.date) {
+      alert("Select doctor and date first ❌");
+      return;
+    }
+
+    const res = await API.get(
+      `/api/appointments/${form.doctor}/${form.date}`
+    );
+    setSlots(res.data);
+  }}
+  className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+>
+  Fetch Slots 🔍
+</button>
 
         {/* Slots */}
-        <select
-          className="input"
-          onChange={(e)=>{
-            const s = slots.find(x => x.id == e.target.value);
+<div className="grid grid-cols-3 gap-3">
+  {slots.length === 0 && (
+    <p className="col-span-3 text-center text-gray-500">
+      No slots available
+    </p>
+  )}
 
-            setForm({
-              ...form,
-              appointment_id: s.id,
-              time_slot: `${s.start_time}-${s.end_time}`
-            });
-          }}
-        >
-          <option>Select Slot</option>
+  {slots.map((s) => {
+    const isBooked = s.status === "BOOKED";
 
-          {slots.map(s => (
-            <option key={s.id} value={s.id} disabled={s.status==="BOOKED"}>
-              {s.start_time} - {s.end_time} {s.status==="BOOKED" && "(Full)"}
-            </option>
-          ))}
-        </select>
+    return (
+      <button
+        key={s.id}
+        disabled={isBooked}
+        onClick={() =>
+          setForm({
+            ...form,
+            appointment_id: s.id,
+            time_slot: `${s.start_time}-${s.end_time}`
+          })
+        }
+        className={`p-3 rounded-lg border text-sm transition ${
+          isBooked
+            ? "bg-gray-200 text-gray-500"
+            : form.appointment_id === s.id
+            ? "bg-blue-600 text-white"
+            : "bg-white hover:bg-blue-100"
+        }`}
+      >
+        {s.start_time} - {s.end_time}
+      </button>
+    );
+  })}
+</div>
 
  <button
   onClick={handleBook}
@@ -184,6 +233,7 @@ const handleBook = async () => {
 </button>
 
       </div>
+)}
     </PatientLayout>
   );
 }

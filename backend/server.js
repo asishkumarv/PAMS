@@ -465,6 +465,24 @@ app.post("/api/tokens/pcreate", async (req, res) => {
   }
 });
 
+
+app.get("/api/tokens/patient/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const result = await db.query(
+    `SELECT t.*, d.name as dept_name, doc.name as doc_name
+     FROM tokens t
+     JOIN departments d ON t.department_id = d.id
+     JOIN doctors doc ON t.doctor_id = doc.id
+     WHERE t.patient_id = $1
+     ORDER BY t.date DESC`,
+    [id]
+  );
+
+  res.json(result.rows);
+});
+
+
 app.get("/api/departments", async (req, res) => {
   const result = await db.query("SELECT * FROM departments");
   res.json(result.rows);
