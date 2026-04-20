@@ -7,6 +7,8 @@ const app = express();
 const jwt = require("jsonwebtoken");
 const transporter = require("./mailer");
 const QRCode = require("qrcode");
+const cron = require("node-cron");
+
 app.use(cors());
 app.use(express.json());
 
@@ -783,9 +785,7 @@ app.put("/api/tokens/postpone", async (req, res) => {
               <h2>🔄 Appointment Rescheduled</h2>
 
               <p>Dear ${token.patient_name},</p>
-
               <p>Your appointment has been updated:</p>
-
               <p><b>Token:</b> #${token.token_number}</p>
               <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
               <p><b>Time:</b> ${token.time_slot}</p>
@@ -817,6 +817,76 @@ app.put("/api/tokens/postpone", async (req, res) => {
   }
 });
 
+//schedules reminders
+cron.schedule("*/5 * * * *", async () => {
+  console.log("⏰ Checking for upcoming appointments...");
+
+  try {
+    const result = await db.query(`
+      SELECT * FROM tokens
+      WHERE status='WAITING'
+    `);
+
+    const now = new Date();
+
+    for (let token of result.rows) {
+      const appointmentTime = new Date(`${token.date} ${token.time_slot.split("-")[0]}`);
+
+      const diff = appointmentTime - now;
+
+      // 4 hours = 14400000 ms
+      if (diff > 0 && diff <= 14400000 && !token.reminder_sent) {
+
+        console.log("Sending reminder to:", token.email);
+
+        // 🔥 QR
+        const qrData = JSON.stringify({
+          token_id: token.id,
+          token_number: token.token_number,
+          patient_id: token.patient_id
+        });
+
+        const qrImage = await QRCode.toDataURL(qrData);
+
+        // 🔥 SEND EMAIL
+        if (token.email) {
+          await transporter.sendMail({
+            from: "yourgmail@gmail.com",
+            to: token.email,
+            subject: "Appointment Reminder ⏰",
+            html: `
+              <div style="padding:20px;font-family:Arial">
+                <h2>⏰ Appointment Reminder</h2>
+
+                <p>Dear ${token.patient_name},</p>
+
+                <p>Your appointment is in <b>4 hours</b>.</p>
+
+                <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
+                <p><b>Time:</b> ${token.time_slot}</p>
+
+                <div style="text-align:center;margin-top:15px;">
+                  <img src="${qrImage}" width="150"/>
+                </div>
+
+                <p>Please arrive 10 minutes early.</p>
+              </div>
+            `
+          });
+        }
+
+        // 🔥 mark as sent (VERY IMPORTANT)
+        await db.query(
+          "UPDATE tokens SET reminder_sent=true WHERE id=$1",
+          [token.id]
+        );
+      }
+    }
+
+  } catch (err) {
+    console.log("CRON ERROR:", err.message);
+  }
+});
 app.get("/", (req, res) => {
   res.send("API Running ✅");
 });
