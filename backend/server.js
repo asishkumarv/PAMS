@@ -817,7 +817,6 @@ app.put("/api/tokens/postpone", async (req, res) => {
   }
 });
 
-//schedules reminders
 cron.schedule("*/5 * * * *", async () => {
   console.log("⏰ Checking appointments...");
 
@@ -830,56 +829,50 @@ cron.schedule("*/5 * * * *", async () => {
 
     for (let token of result.rows) {
 
-      const startTime = token.time_slot.split("-")[0];
+      // 🔥 extract start time
+      const startTime = token.time_slot.split("-")[0]; // 17:20:00
 
+      // 🔥 split date & time manually (IMPORTANT)
+      const [year, month, day] = token.date.split("-");
+      const [hour, minute, second] = startTime.split(":");
+
+      // ✅ LOCAL TIME (NO timezone issue)
       const appointmentTime = new Date(
-        `${token.date}T${startTime}`
+        year,
+        month - 1,
+        day,
+        hour,
+        minute,
+        second
       );
 
       const diff = appointmentTime - now;
 
+      const diffHours = diff / (1000 * 60 * 60);
+
+      console.log("NOW:", now);
+      console.log("APPT:", appointmentTime);
+      console.log("DIFF HOURS:", diffHours);
+      console.log("----------------");
+
       const FOUR_HOURS = 4 * 60 * 60 * 1000;
 
-      // ✅ send if within 4 hours AND not sent
+      // ✅ YOUR CONDITION (LESS THAN 4 HOURS)
       if (diff > 0 && diff <= FOUR_HOURS && !token.reminder_sent) {
 
-        console.log("Sending reminder to:", token.email);
+        console.log("🔥 Sending reminder to:", token.email);
 
-        // QR
-        const qrData = JSON.stringify({
-          token_id: token.id,
-          token_number: token.token_number,
-          patient_id: token.patient_id
-        });
-
-        const qrImage = await QRCode.toDataURL(qrData);
-
+        // 🔥 SEND EMAIL
         if (token.email) {
           await transporter.sendMail({
             from: "yourgmail@gmail.com",
             to: token.email,
             subject: "Appointment Reminder ⏰",
-            html: `
-              <div style="padding:20px;font-family:Arial">
-                <h2>⏰ Appointment Reminder</h2>
-
-                <p>Dear ${token.patient_name},</p>
-
-                <p>Your appointment is coming soon.</p>
-
-                <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
-                <p><b>Time:</b> ${token.time_slot}</p>
-
-                <div style="text-align:center;margin-top:15px;">
-                  <img src="${qrImage}" width="150"/>
-                </div>
-
-                <p>Please arrive 10 minutes early.</p>
-              </div>
-            `
+            text: `Your appointment is at ${token.time_slot} on ${token.date}`
           });
         }
 
+        // mark sent
         await db.query(
           "UPDATE tokens SET reminder_sent=true WHERE id=$1",
           [token.id]
