@@ -74,6 +74,7 @@ const openPostpone = async (token) => {
   setShowModal(true);
 
   const res = await API.get(`/api/slots/next/${token.id}`);
+  console.log("SLOTS:", res.data);
   setAvailableSlots(res.data);
 };
 const handlePostpone = async () => {
@@ -132,8 +133,12 @@ const filteredTokens = tokens.filter(t => {
                 : ""
             }`}
           >
-            <p>{slot.date}</p>
-            <p>{slot.start_time} - {slot.end_time}</p>
+<p className="font-medium">
+  {new Date(slot.date).toLocaleDateString()}
+</p>
+<p className="text-sm text-gray-600">
+  {slot.start_time} - {slot.end_time}
+</p>
           </div>
         ))}
 
@@ -160,6 +165,7 @@ const filteredTokens = tokens.filter(t => {
 
     </div>
   </div>
+  
 )}
       {/* HEADER */}
       <div className="mb-6">

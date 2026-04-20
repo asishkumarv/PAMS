@@ -705,7 +705,6 @@ app.post("/api/appointments/create", async (req, res) => {
 app.get("/api/slots/next/:tokenId", async (req, res) => {
   const { tokenId } = req.params;
 
-  // 🔥 Get current token details
   const tokenRes = await db.query(
     "SELECT doctor, date, time_slot FROM tokens WHERE id=$1",
     [tokenId]
@@ -713,30 +712,18 @@ app.get("/api/slots/next/:tokenId", async (req, res) => {
 
   const token = tokenRes.rows[0];
 
-  if (!token) {
-    return res.status(404).json({ msg: "Token not found ❌" });
-  }
-
-  // extract start time from time_slot
-  const startTime = token.time_slot.split("-")[0];
-
-  // 🔥 Get next available slots AFTER current slot
   const result = await db.query(
     `SELECT * FROM appointments
      WHERE doctor_id=$1
      AND status='AVAILABLE'
-     AND (
-       date > $2
-       OR (date = $2 AND start_time > $3)
-     )
+     AND date >= $2
      ORDER BY date, start_time
      LIMIT 10`,
-    [token.doctor, token.date, startTime]
+    [token.doctor, token.date]
   );
 
   res.json(result.rows);
 });
-
 app.put("/api/tokens/postpone", async (req, res) => {
   const { tokenId, appointmentId, date, time_slot } = req.body;
 
