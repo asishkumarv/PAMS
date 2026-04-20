@@ -6,7 +6,7 @@ const bcrypt = require("bcrypt");
 const app = express();
 const jwt = require("jsonwebtoken");
 const transporter = require("./mailer");
-
+import QRCode from "qrcode";
 app.use(cors());
 app.use(express.json());
 
@@ -486,6 +486,13 @@ if (email) {
   }
 });
 
+const qrData = JSON.stringify({
+  token_id: token.id,
+  token_number: token.token_number,
+  patient_id: token.patient_id
+});
+
+const qrImage = await QRCode.toDataURL(qrData);
 app.post("/api/tokens/pcreate", async (req, res) => {
   try {
     const { patient_name, mobile, department, doctor, date,time_slot, appointment_id,patient_id ,email} = req.body;
@@ -599,7 +606,12 @@ if (email) {
                   ${token.status}
                 </span>
               </div>
-
+<div style="text-align:center;margin-top:20px;">
+  <img src="${qrImage}" width="150" />
+  <p style="font-size:12px;color:#666;">
+    Scan this QR at hospital
+  </p>
+</div>
             </td>
           </tr>
 

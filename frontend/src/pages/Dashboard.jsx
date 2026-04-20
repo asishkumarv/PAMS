@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import API from "../services/api";
 import PatientLayout from "../components/PatientLayout";
+import { QRCodeCanvas } from "qrcode.react";
 
 export default function PatientBookToken() {
   const [form, setForm] = useState({
@@ -70,7 +71,13 @@ const handleBook = async () => {
     alert(err.response?.data?.msg || "Booking failed ❌");
   }
 };
-
+const qrData = token
+  ? JSON.stringify({
+      token_id: token.id,
+      token_number: token.token_number,
+      patient_id: token.patient_id
+    })
+  : "";
   return (
     <PatientLayout>
 
@@ -92,7 +99,10 @@ const handleBook = async () => {
       <p><b>Dept:</b> {token.dept_name}</p>
       <p><b>Doctor:</b> {token.doc_name}</p>
 
-      <p><b>Date:</b> {token.date}</p>
+      <p>
+  <b>Date:</b>{" "}
+  {new Date(token.date).toLocaleDateString("en-IN")}
+</p>
       <p><b>Time:</b> {token.time_slot}</p>
 
       <p className="col-span-2 text-center mt-2 text-lg font-semibold">
@@ -100,7 +110,22 @@ const handleBook = async () => {
       </p>
 
     </div>
+    {token && (
+<div className="w-full flex justify-center mt-4">
+  <div className="bg-white p-4 rounded-xl shadow-lg flex flex-col items-center">
 
+    <QRCodeCanvas
+      value={qrData}
+      size={180}
+    />
+
+    <p className="text-xs text-gray-500 mt-2 text-center">
+      Scan at hospital desk 📱
+    </p>
+
+  </div>
+</div>
+)}
     {/* 🔥 BOOK AGAIN BUTTON */}
     <button
       onClick={() => {
