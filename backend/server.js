@@ -822,7 +822,7 @@ cron.schedule("*/5 * * * *", async () => {
 
   try {
     const result = await db.query(`
-      SELECT * FROM tokens WHERE status='WAITING'
+      SELECT * FROM tokens WHERE status='WAITING' AND reminder_sent='FALSE'
     `);
 
     const now = new Date();
@@ -833,19 +833,20 @@ cron.schedule("*/5 * * * *", async () => {
       const startTime = token.time_slot.split("-")[0]; // 17:20:00
 
       // 🔥 split date & time manually (IMPORTANT)
-      const [year, month, day] = token.date.split("-");
+      
       const [hour, minute, second] = startTime.split(":");
-
+const year = token.date.getFullYear();
+const month = token.date.getMonth();
+const day = token.date.getDate();
       // ✅ LOCAL TIME (NO timezone issue)
-      const appointmentTime = new Date(
-        year,
-        month - 1,
-        day,
-        hour,
-        minute,
-        second
-      );
-
+ const appointmentTime = new Date(
+  year,
+  month,
+  day,
+  hour,
+  minute,
+  second
+);
       const diff = appointmentTime - now;
 
       const diffHours = diff / (1000 * 60 * 60);
