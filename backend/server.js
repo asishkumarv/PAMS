@@ -386,9 +386,9 @@ app.post("/api/tokens/create", async (req, res) => {
     // 🧾 Insert token
     const result = await db.query(
       `INSERT INTO tokens 
-      (patient_name, mobile, department, doctor, date,time_slot, token_number,doc_name, dept_name)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-      [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name]
+      (patient_name, mobile, department, doctor, date,time_slot, token_number,doc_name, dept_name, email)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name, email]
     );
 const token = result.rows[0];
  const qrData = JSON.stringify({
@@ -504,9 +504,9 @@ app.post("/api/tokens/pcreate", async (req, res) => {
     // 🧾 Insert token
     const result = await db.query(
       `INSERT INTO tokens 
-      (patient_name, mobile, department, doctor, date,time_slot, token_number,doc_name, dept_name,patient_id)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-      [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name, patient_id]
+      (patient_name, mobile, department, doctor, date,time_slot, token_number,doc_name, dept_name,patient_id, email)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+      [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name, patient_id, email]
     );
 const token = result.rows[0];
 
@@ -716,9 +716,9 @@ app.get("/api/slots/next/:tokenId", async (req, res) => {
     `SELECT * FROM appointments
      WHERE doctor_id=$1
      AND status='available'
-     AND date >= $2
+     AND date > $2
      ORDER BY date, start_time
-     LIMIT 10`,
+     LIMIT 20`,
     [token.doctor, token.date]
   );
 
