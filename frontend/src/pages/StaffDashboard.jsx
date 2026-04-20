@@ -73,7 +73,7 @@ const openPostpone = async (token) => {
   setSelectedToken(token);
   setShowModal(true);
 
-  const res = await API.get(`/api/slots/next/${token.doctor}`);
+  const res = await API.get(`/api/slots/next/${token.id}`);
   setAvailableSlots(res.data);
 };
 const handlePostpone = async () => {
