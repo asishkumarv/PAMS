@@ -729,21 +729,21 @@ app.put("/api/tokens/postpone", async (req, res) => {
   try {
     const { tokenId, appointmentId, date, time_slot } = req.body;
 
+    // 🔥 update token
     await db.query(
       `UPDATE tokens SET date=$1, time_slot=$2 WHERE id=$3`,
       [date, time_slot, tokenId]
     );
 
+    // 🔥 update appointment
     await db.query(
       "UPDATE appointments SET status='BOOKED' WHERE id=$1",
       [appointmentId]
     );
 
+    // 🔥 get token directly (NO JOIN)
     const result = await db.query(
-      `SELECT t.*, p.email 
-       FROM tokens t
-       LEFT JOIN patients p ON t.patient_id = p.id
-       WHERE t.id=$1`,
+      `SELECT * FROM tokens WHERE id=$1`,
       [tokenId]
     );
 
@@ -753,7 +753,9 @@ app.put("/api/tokens/postpone", async (req, res) => {
       return res.status(404).json({ msg: "Token not found ❌" });
     }
 
-    // ✅ QR
+    console.log("EMAIL:", token.email); // debug
+
+    // 🔥 QR
     const qrData = JSON.stringify({
       token_id: token.id,
       token_number: token.token_number,
@@ -761,8 +763,8 @@ app.put("/api/tokens/postpone", async (req, res) => {
     });
 
     const qrImage = await QRCode.toDataURL(qrData);
-console.log("EMAIL:", token.email);
-    // ✅ EMAIL
+
+    // 🔥 EMAIL
     if (token.email) {
       try {
         await transporter.sendMail({
@@ -772,30 +774,43 @@ console.log("EMAIL:", token.email);
           html: `
             <div style="padding:20px;font-family:Arial">
               <h2>🔄 Appointment Rescheduled</h2>
-              <p>Dear ${token.patient_name},</p>
-              <p>Your new slot:</p>
 
+              <p>Dear ${token.patient_name},</p>
+
+              <p>Your appointment has been updated:</p>
+
+              <p><b>Token:</b> #${token.token_number}</p>
               <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
               <p><b>Time:</b> ${token.time_slot}</p>
 
               <div style="text-align:center;margin-top:15px;">
                 <img src="${qrImage}" width="150"/>
               </div>
+
+              <p style="margin-top:10px;">
+                Please arrive 10 minutes early.
+              </p>
             </div>
           `
         });
+
+        console.log("MAIL SENT ✅");
+
       } catch (err) {
-        console.log("Mail error:", err.message);
+        console.log("MAIL ERROR:", err.message);
       }
+    } else {
+      console.log("No email found ❌");
     }
 
-    res.json({ msg: "Token postponed & mail sent ✅" });
+    res.json({ msg: "Token postponed & mail handled ✅" });
 
   } catch (err) {
     console.log("POSTPONE ERROR:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
+
 app.get("/", (req, res) => {
   res.send("API Running ✅");
 });
