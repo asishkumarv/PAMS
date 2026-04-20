@@ -761,7 +761,7 @@ app.put("/api/tokens/postpone", async (req, res) => {
     });
 
     const qrImage = await QRCode.toDataURL(qrData);
-
+console.log("EMAIL:", token.email);
     // ✅ EMAIL
     if (token.email) {
       try {

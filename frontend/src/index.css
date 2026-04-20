@@ -163,3 +163,10 @@ code {
     border: none;
   }
 }
+body {
+  overflow-x: hidden;
+}
+html, body, #root {
+  width: 100%;
+  overflow-x: hidden;
+}

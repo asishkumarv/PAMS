@@ -110,10 +110,12 @@ const filteredTokens = tokens.filter(t => {
     (!search || t.patient_name.toLowerCase().includes(search.toLowerCase()))
   );
 });
-  return (
-    <Layout>
+ return (
+  <Layout>
+
+    <div className="w-full min-h-screen bg-gray-50 px-4 md:px-6">
 {showModal && (
-  <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+  <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 overflow-hidden">
     
     <div className="bg-white p-5 rounded-xl w-[90%] max-w-md">
       
@@ -204,7 +206,7 @@ const filteredTokens = tokens.filter(t => {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-2xl shadow p-4 overflow-x-auto">
+      <div className="bg-white rounded-2xl shadow p-4 w-full overflow-hidden">
 
 <h2 className="text-lg font-bold mb-4 text-gray-800 bg-gray-100 px-3 py-2 rounded-lg">
   Live Queue
@@ -253,7 +255,7 @@ const filteredTokens = tokens.filter(t => {
 /> */}
 </div>
 <div className="hidden md:block">
-        <table className="min-w-[600px] w-full text-sm">
+        <table className="w-full text-sm">
 
           <thead className="bg-gray-100 text-gray-600">
             <tr>
@@ -412,7 +414,7 @@ const filteredTokens = tokens.filter(t => {
   })}
 </div>     
  </div>
-
+</div>
     </Layout>
     
   );
