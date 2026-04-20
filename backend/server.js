@@ -707,7 +707,7 @@ app.get("/api/slots/next/:doctorId", async (req, res) => {
 
   const result = await db.query(
     `SELECT * FROM appointments
-     WHERE doctor_id=$1 AND status='AVAILABLE'
+     WHERE doctor=$1 AND status='AVAILABLE'
      AND date >= CURRENT_DATE
      ORDER BY date, start_time
      LIMIT 10`,
