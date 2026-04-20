@@ -486,13 +486,7 @@ if (email) {
   }
 });
 
-const qrData = JSON.stringify({
-  token_id: token.id,
-  token_number: token.token_number,
-  patient_id: token.patient_id
-});
 
-const qrImage = await QRCode.toDataURL(qrData);
 app.post("/api/tokens/pcreate", async (req, res) => {
   try {
     const { patient_name, mobile, department, doctor, date,time_slot, appointment_id,patient_id ,email} = req.body;
@@ -540,7 +534,8 @@ app.post("/api/tokens/pcreate", async (req, res) => {
     );
 const token = result.rows[0];
 
-// ✅ generate QR here
+
+// 🔥 Generate QR inside async route
 const qrData = JSON.stringify({
   token_id: token.id,
   token_number: token.token_number,
