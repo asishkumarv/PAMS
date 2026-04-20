@@ -6,7 +6,7 @@ const bcrypt = require("bcrypt");
 const app = express();
 const jwt = require("jsonwebtoken");
 const transporter = require("./mailer");
-import QRCode from "qrcode";
+const QRCode = require("qrcode");
 app.use(cors());
 app.use(express.json());
 
@@ -539,6 +539,15 @@ app.post("/api/tokens/pcreate", async (req, res) => {
       [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name, patient_id]
     );
 const token = result.rows[0];
+
+// ✅ generate QR here
+const qrData = JSON.stringify({
+  token_id: token.id,
+  token_number: token.token_number,
+  patient_id: token.patient_id
+});
+
+const qrImage = await QRCode.toDataURL(qrData);
     // 🔥 Update slot status
     await db.query(
       "UPDATE appointments SET status='BOOKED' WHERE id=$1",
