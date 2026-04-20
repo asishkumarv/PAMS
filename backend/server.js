@@ -715,7 +715,7 @@ app.get("/api/slots/next/:tokenId", async (req, res) => {
   const result = await db.query(
     `SELECT * FROM appointments
      WHERE doctor_id=$1
-     AND status='AVAILABLE'
+     AND status='available'
      AND date >= $2
      ORDER BY date, start_time
      LIMIT 10`,
