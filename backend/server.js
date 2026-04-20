@@ -702,6 +702,41 @@ app.post("/api/appointments/create", async (req, res) => {
   }
 });
 
+app.get("/api/slots/next/:doctorId", async (req, res) => {
+  const { doctorId } = req.params;
+
+  const result = await db.query(
+    `SELECT * FROM appointments
+     WHERE doctor_id=$1 AND status='AVAILABLE'
+     AND date >= CURRENT_DATE
+     ORDER BY date, start_time
+     LIMIT 10`,
+    [doctorId]
+  );
+
+  res.json(result.rows);
+});
+
+app.put("/api/tokens/postpone", async (req, res) => {
+  const { tokenId, appointmentId, date, time_slot } = req.body;
+
+  // update token
+  await db.query(
+    `UPDATE tokens 
+     SET date=$1, time_slot=$2 
+     WHERE id=$3`,
+    [date, time_slot, tokenId]
+  );
+
+  // mark new slot booked
+  await db.query(
+    "UPDATE appointments SET status='BOOKED' WHERE id=$1",
+    [appointmentId]
+  );
+
+  res.json({ msg: "Token postponed ✅" });
+});
+
 app.get("/", (req, res) => {
   res.send("API Running ✅");
 });

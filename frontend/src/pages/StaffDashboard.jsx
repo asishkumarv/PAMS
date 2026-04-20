@@ -12,6 +12,10 @@ const [selectedDept, setSelectedDept] = useState("");
 const [selectedDoctor, setSelectedDoctor] = useState("");
 const [search, setSearch] = useState("");
 const [selectedDate, setSelectedDate] = useState("");
+const [showModal, setShowModal] = useState(false);
+const [selectedToken, setSelectedToken] = useState(null);
+const [availableSlots, setAvailableSlots] = useState([]);
+const [selectedSlot, setSelectedSlot] = useState(null);
   const fetchData = async () => {
     const res1 = await API.get("/api/staff/dashboard");
     const res2 = await API.get("/api/tokens/today");
@@ -63,6 +67,38 @@ const handleDeptChange = async (deptId) => {
     setDoctors(res.data);
   } else {
     setDoctors([]);
+  }
+};
+const openPostpone = async (token) => {
+  setSelectedToken(token);
+  setShowModal(true);
+
+  const res = await API.get(`/api/slots/next/${token.doctor}`);
+  setAvailableSlots(res.data);
+};
+const handlePostpone = async () => {
+  if (!selectedSlot) {
+    alert("Select a slot ❌");
+    return;
+  }
+
+  try {
+    await API.put("/api/tokens/postpone", {
+      tokenId: selectedToken.id,
+      appointmentId: selectedSlot.id,
+      date: selectedSlot.date,
+      time_slot: `${selectedSlot.start_time}-${selectedSlot.end_time}`
+    });
+
+    alert("Token postponed successfully ✅");
+
+    setShowModal(false);
+    setSelectedSlot(null);
+
+    fetchData(); // refresh table
+
+  } catch (err) {
+    alert("Postpone failed ❌");
   }
 };
 const filteredTokens = tokens.filter(t => {
@@ -284,7 +320,17 @@ const filteredTokens = tokens.filter(t => {
           >
             Arrived
           </button>
-
+<button
+  disabled={isDisabled}
+  onClick={() => openPostpone(t)}
+  className={`px-3 py-1 rounded-lg text-xs text-white ${
+    isDisabled
+      ? "bg-gray-300"
+      : "bg-blue-500 hover:bg-blue-600"
+  }`}
+>
+  Postpone
+</button>
           <button
             disabled={isDisabled}
             onClick={() => updateStatus(t.id, "CANCELLED")}
@@ -302,5 +348,56 @@ const filteredTokens = tokens.filter(t => {
  </div>
 
     </Layout>
+    
   );
 }
+{showModal && (
+  <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+    
+    <div className="bg-white p-5 rounded-xl w-[90%] max-w-md">
+      
+      <h2 className="text-lg font-bold mb-3">
+        Select New Slot
+      </h2>
+
+      <div className="space-y-2 max-h-60 overflow-y-auto">
+
+        {availableSlots.map(slot => (
+          <div
+            key={slot.id}
+            onClick={() => setSelectedSlot(slot)}
+            className={`p-3 border rounded-lg cursor-pointer ${
+              selectedSlot?.id === slot.id
+                ? "bg-blue-100 border-blue-500"
+                : ""
+            }`}
+          >
+            <p>{slot.date}</p>
+            <p>{slot.start_time} - {slot.end_time}</p>
+          </div>
+        ))}
+
+      </div>
+
+      {/* ACTIONS */}
+      <div className="flex gap-2 mt-4">
+
+        <button
+          onClick={() => setShowModal(false)}
+          className="flex-1 bg-gray-300 py-2 rounded"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handlePostpone}
+          className="flex-1 bg-blue-600 text-white py-2 rounded"
+        >
+          Confirm
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+)}

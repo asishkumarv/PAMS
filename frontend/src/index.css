@@ -127,3 +127,39 @@ code {
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
+/* 🔥 Receipt base */
+.receipt-container {
+  width: 280px;
+  padding: 12px;
+  background: white;
+  color: black;
+  font-family: monospace;
+  border-radius: 8px;
+}
+
+/* QR styling */
+.qr-box {
+  padding: 6px;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  background: #fff;
+}
+
+/* 🔥 PRINT OPTIMIZATION */
+@media print {
+  body {
+    margin: 0;
+  }
+
+  .receipt-container {
+    width: 260px;
+    padding: 10px;
+    font-size: 12px;
+    box-shadow: none;
+    border: none;
+  }
+
+  .qr-box {
+    border: none;
+  }
+}
