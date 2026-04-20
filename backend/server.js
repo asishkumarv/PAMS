@@ -819,27 +819,33 @@ app.put("/api/tokens/postpone", async (req, res) => {
 
 //schedules reminders
 cron.schedule("*/5 * * * *", async () => {
-  console.log("⏰ Checking for upcoming appointments...");
+  console.log("⏰ Checking appointments...");
 
   try {
     const result = await db.query(`
-      SELECT * FROM tokens
-      WHERE status='WAITING'
+      SELECT * FROM tokens WHERE status='WAITING'
     `);
 
     const now = new Date();
 
     for (let token of result.rows) {
-      const appointmentTime = new Date(`${token.date} ${token.time_slot.split("-")[0]}`);
+
+      const startTime = token.time_slot.split("-")[0];
+
+      const appointmentTime = new Date(
+        `${token.date}T${startTime}`
+      );
 
       const diff = appointmentTime - now;
 
-      // 4 hours = 14400000 ms
-      if (diff > 0 && diff <= 14400000 && !token.reminder_sent) {
+      const FOUR_HOURS = 4 * 60 * 60 * 1000;
+
+      // ✅ send if within 4 hours AND not sent
+      if (diff > 0 && diff <= FOUR_HOURS && !token.reminder_sent) {
 
         console.log("Sending reminder to:", token.email);
 
-        // 🔥 QR
+        // QR
         const qrData = JSON.stringify({
           token_id: token.id,
           token_number: token.token_number,
@@ -848,7 +854,6 @@ cron.schedule("*/5 * * * *", async () => {
 
         const qrImage = await QRCode.toDataURL(qrData);
 
-        // 🔥 SEND EMAIL
         if (token.email) {
           await transporter.sendMail({
             from: "yourgmail@gmail.com",
@@ -860,7 +865,7 @@ cron.schedule("*/5 * * * *", async () => {
 
                 <p>Dear ${token.patient_name},</p>
 
-                <p>Your appointment is in <b>4 hours</b>.</p>
+                <p>Your appointment is coming soon.</p>
 
                 <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
                 <p><b>Time:</b> ${token.time_slot}</p>
@@ -875,7 +880,6 @@ cron.schedule("*/5 * * * *", async () => {
           });
         }
 
-        // 🔥 mark as sent (VERY IMPORTANT)
         await db.query(
           "UPDATE tokens SET reminder_sent=true WHERE id=$1",
           [token.id]
@@ -887,6 +891,7 @@ cron.schedule("*/5 * * * *", async () => {
     console.log("CRON ERROR:", err.message);
   }
 });
+
 app.get("/", (req, res) => {
   res.send("API Running ✅");
 });
