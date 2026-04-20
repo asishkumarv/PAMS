@@ -868,13 +868,27 @@ const day = token.date.getDate();
         console.log("🔥 Sending reminder to:", token.email);
 
         // 🔥 SEND EMAIL
-        if (token.email) {
-          await transporter.sendMail({
-            from: "yourgmail@gmail.com",
-            to: token.email,
-            subject: "Appointment Reminder ⏰",
-            text: `Your appointment is at ${token.time_slot} on ${token.date}`
-          });
+const qrData = JSON.stringify({ 
+  token_id: token.id, 
+  token_number: token.token_number, 
+  patient_id: token.patient_id }); 
+  const qrImage = await QRCode.toDataURL(qrData); 
+  if (token.email) { 
+    await transporter.sendMail({ 
+      from: "yourgmail@gmail.com", 
+      to: token.email, 
+      subject: "Appointment Reminder ⏰", 
+      html: 
+      <div style="padding:20px;font-family:Arial">
+         <h2>⏰ Appointment Reminder</h2> 
+         <p>Dear ${token.patient_name},</p> 
+         <p>Your appointment is coming soon.</p>
+          <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
+           <p><b>Time:</b> ${token.time_slot}</p> 
+           <div style="text-align:center;margin-top:15px;"> 
+            <img src="${qrImage}" width="150"/> 
+            </div> 
+            <p>Please arrive 10 minutes early.</p> </div> });
         }
 
         // mark sent
