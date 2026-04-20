@@ -726,95 +726,76 @@ app.get("/api/slots/next/:tokenId", async (req, res) => {
 });
 
 app.put("/api/tokens/postpone", async (req, res) => {
-  const { tokenId, appointmentId, date, time_slot } = req.body;
+  try {
+    const { tokenId, appointmentId, date, time_slot } = req.body;
 
-  // 🔥 update token
-  await db.query(
-    `UPDATE tokens 
-     SET date=$1, time_slot=$2 
-     WHERE id=$3`,
-    [date, time_slot, tokenId]
-  );
+    await db.query(
+      `UPDATE tokens SET date=$1, time_slot=$2 WHERE id=$3`,
+      [date, time_slot, tokenId]
+    );
 
-  // 🔥 mark new slot booked
-  await db.query(
-    "UPDATE appointments SET status='BOOKED' WHERE id=$1",
-    [appointmentId]
-  );
+    await db.query(
+      "UPDATE appointments SET status='BOOKED' WHERE id=$1",
+      [appointmentId]
+    );
 
-  // 🔥 get updated token details (IMPORTANT)
-  const result = await db.query(
-    `SELECT t.*, p.email 
-     FROM tokens t
-     JOIN patients p ON t.patient_id = p.id
-     WHERE t.id=$1`,
-    [tokenId]
-  );
+    const result = await db.query(
+      `SELECT t.*, p.email 
+       FROM tokens t
+       LEFT JOIN patients p ON t.patient_id = p.id
+       WHERE t.id=$1`,
+      [tokenId]
+    );
 
-  const token = result.rows[0];
-const qrData = JSON.stringify({
-  token_id: token.id,
-  token_number: token.token_number,
-  patient_id: token.patient_id
-});
+    const token = result.rows[0];
 
-const qrImage = await QRCode.toDataURL(qrData);
-  // 🔥 SEND EMAIL
-  if (token.email) {
-    await transporter.sendMail({
-      from: "yourgmail@gmail.com",
-      to: token.email,
-      subject: "Appointment Rescheduled 🔄",
+    if (!token) {
+      return res.status(404).json({ msg: "Token not found ❌" });
+    }
 
-      html: `
-        <div style="font-family:Arial;padding:20px;background:#f4f6f8;">
-          
-          <div style="max-width:600px;margin:auto;background:#fff;border-radius:10px;overflow:hidden;">
-            
-            <!-- HEADER -->
-            <div style="background:#f59e0b;color:white;padding:15px;text-align:center;">
-              <h2>🔄 Appointment Rescheduled</h2>
-            </div>
-
-            <!-- BODY -->
-            <div style="padding:20px;">
-
-              <p>Dear <b>${token.patient_name}</b>,</p>
-
-              <p>Your appointment has been <b>rescheduled</b>.</p>
-
-              <hr/>
-
-              <p><b>Token:</b> #${token.token_number}</p>
-              <p><b>Doctor:</b> ${token.doc_name}</p>
-              <p><b>Department:</b> ${token.dept_name}</p>
-
-              <p><b>New Date:</b> ${new Date(token.date).toDateString()}</p>
-              <p><b>New Time:</b> ${token.time_slot}</p>
-
-              <div style="margin-top:15px;padding:10px;background:#fff7ed;border-radius:6px;">
-                Please arrive 10 minutes before your updated slot.
-              </div>
-<div style="text-align:center;margin-top:15px;">
-  <img src="${qrImage}" width="150"/>
-</div>
-            </div>
-
-            <!-- FOOTER -->
-            <div style="text-align:center;padding:10px;font-size:12px;color:#666;">
-              Thank you for your patience 🙏
-            </div>
-
-          </div>
-
-        </div>
-      `
+    // ✅ QR
+    const qrData = JSON.stringify({
+      token_id: token.id,
+      token_number: token.token_number,
+      patient_id: token.patient_id
     });
+
+    const qrImage = await QRCode.toDataURL(qrData);
+
+    // ✅ EMAIL
+    if (token.email) {
+      try {
+        await transporter.sendMail({
+          from: "yourgmail@gmail.com",
+          to: token.email,
+          subject: "Appointment Rescheduled 🔄",
+          html: `
+            <div style="padding:20px;font-family:Arial">
+              <h2>🔄 Appointment Rescheduled</h2>
+              <p>Dear ${token.patient_name},</p>
+              <p>Your new slot:</p>
+
+              <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
+              <p><b>Time:</b> ${token.time_slot}</p>
+
+              <div style="text-align:center;margin-top:15px;">
+                <img src="${qrImage}" width="150"/>
+              </div>
+            </div>
+          `
+        });
+      } catch (err) {
+        console.log("Mail error:", err.message);
+      }
+    }
+
+    res.json({ msg: "Token postponed & mail sent ✅" });
+
+  } catch (err) {
+    console.log("POSTPONE ERROR:", err.message);
+    res.status(500).json({ error: err.message });
   }
-
-  res.json({ msg: "Token postponed & mail sent ✅" });
 });
-
 app.get("/", (req, res) => {
   res.send("API Running ✅");
 });
