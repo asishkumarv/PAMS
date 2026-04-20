@@ -391,91 +391,67 @@ app.post("/api/tokens/create", async (req, res) => {
       [patient_name, mobile, department, doctor, date, time_slot, token_number, doctor_name, department_name]
     );
 const token = result.rows[0];
+ const qrData = JSON.stringify({
+  token_id: token.id,
+  token_number: token.token_number,
+  patient_id: token.patient_id
+});
+
+const qrImage = await QRCode.toDataURL(qrData);
     // 🔥 Update slot status
     await db.query(
       "UPDATE appointments SET status='BOOKED' WHERE id=$1",
       [appointment_id]
     );
-
 if (email) {
   await transporter.sendMail({
-    from: "yourgmail@gmail.com",
-    to: email,
-    subject: "Appointment Confirmation ✅",
-    html: `
-      <div style="background:#f4f6f8;padding:20px;font-family:Arial, sans-serif;">
+  from: "yourgmail@gmail.com",
+  to: email,
+  subject: "Appointment Confirmation ✅",
+
+  attachments: [
+    {
+      filename: "qr.png",
+      path: qrImage,        // base64 works here
+      cid: "qrimage@pams"   // unique id
+    }
+  ],
+
+  html: `
+    <div style="background:#f4f6f8;padding:20px;font-family:Arial, sans-serif;">
+      
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background:#ffffff;border-radius:10px;overflow:hidden;">
         
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-          
-          <!-- HEADER -->
-          <tr>
-            <td style="background:linear-gradient(90deg,#2563eb,#4f46e5);color:white;padding:20px;text-align:center;">
-              <h2 style="margin:0;">🏥 Appointment Confirmed</h2>
-              <p style="margin:5px 0 0;font-size:14px;">Your booking is successful</p>
-            </td>
-          </tr>
+        <tr>
+          <td style="background:linear-gradient(90deg,#2563eb,#4f46e5);color:white;padding:20px;text-align:center;">
+            <h2>🏥 Appointment Confirmed</h2>
+          </td>
+        </tr>
 
-          <!-- BODY -->
-          <tr>
-            <td style="padding:20px;">
-              
-              <table width="100%" cellpadding="8" cellspacing="0" style="font-size:14px;color:#333;">
-                
-                <tr>
-                  <td style="font-weight:bold;">Token Number</td>
-                  <td style="color:#2563eb;font-weight:bold;">#${token.token_number}</td>
-                </tr>
+        <tr>
+          <td style="padding:20px;">
 
-                <tr>
-                  <td style="font-weight:bold;">Patient Name</td>
-                  <td>${token.patient_name}</td>
-                </tr>
+            <p><b>Token:</b> #${token.token_number}</p>
+            <p><b>Name:</b> ${token.patient_name}</p>
+            <p><b>Doctor:</b> ${token.dept_name}</p>
+            <p><b>Doctor:</b> ${token.doc_name}</p>
+            <p><b>Date:</b> ${token.date}</p>
+            <p><b>Time:</b> ${token.time_slot}</p>
 
-                <tr>
-                  <td style="font-weight:bold;">Doctor</td>
-                  <td>${token.doc_name}</td>
-                </tr>
+            <div style="text-align:center;margin-top:20px;">
+              <img src="cid:qrimage@pams" width="150" />
+              <p style="font-size:12px;color:#666;">
+                Scan this QR at hospital
+              </p>
+            </div>
 
-                <tr>
-                  <td style="font-weight:bold;">Department</td>
-                  <td>${token.dept_name}</td>
-                </tr>
+          </td>
+        </tr>
 
-                <tr>
-                  <td style="font-weight:bold;">Date</td>
-                  <td>${token.date}</td>
-                </tr>
-
-                <tr>
-                  <td style="font-weight:bold;">Time</td>
-                  <td>${token.time_slot}</td>
-                </tr>
-
-              </table>
-
-              <!-- STATUS BADGE -->
-              <div style="margin-top:20px;text-align:center;">
-                <span style="background:#facc15;color:#92400e;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:bold;">
-                  ${token.status}
-                </span>
-              </div>
-
-            </td>
-          </tr>
-
-          <!-- FOOTER -->
-          <tr>
-            <td style="background:#f9fafb;padding:15px;text-align:center;font-size:12px;color:#666;">
-              <p style="margin:0;">Please arrive 10 minutes before your slot.</p>
-              <p style="margin:5px 0 0;">Thank you for choosing our service 🙏</p>
-            </td>
-          </tr>
-
-        </table>
-
-      </div>
-    `
-  });
+      </table>
+    </div>
+  `
+});
 }
 
     res.json(result.rows[0]);
@@ -578,6 +554,7 @@ if (email) {
 
             <p><b>Token:</b> #${token.token_number}</p>
             <p><b>Name:</b> ${token.patient_name}</p>
+            <p><b>Doctor:</b> ${token.dept_name}</p>
             <p><b>Doctor:</b> ${token.doc_name}</p>
             <p><b>Date:</b> ${token.date}</p>
             <p><b>Time:</b> ${token.time_slot}</p>
