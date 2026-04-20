@@ -868,28 +868,107 @@ const day = token.date.getDate();
         console.log("🔥 Sending reminder to:", token.email);
 
         // 🔥 SEND EMAIL
-const qrData = JSON.stringify({ 
-  token_id: token.id, 
-  token_number: token.token_number, 
-  patient_id: token.patient_id }); 
-  const qrImage = await QRCode.toDataURL(qrData); 
-  if (token.email) { 
-    await transporter.sendMail({ 
-      from: "yourgmail@gmail.com", 
-      to: token.email, 
-      subject: "Appointment Reminder ⏰", 
-      html: 
-      <div style="padding:20px;font-family:Arial">
-         <h2>⏰ Appointment Reminder</h2> 
-         <p>Dear ${token.patient_name},</p> 
-         <p>Your appointment is coming soon.</p>
-          <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
-           <p><b>Time:</b> ${token.time_slot}</p> 
-           <div style="text-align:center;margin-top:15px;"> 
-            <img src="${qrImage}" width="150"/> 
-            </div> 
-            <p>Please arrive 10 minutes early.</p> </div> });
-        }
+const qrData = JSON.stringify({
+  token_id: token.id,
+  token_number: token.token_number,
+  patient_id: token.patient_id
+});
+
+const qrImage = await QRCode.toDataURL(qrData);
+
+await transporter.sendMail({
+  from: "yourgmail@gmail.com",
+  to: token.email,
+  subject: "⏰ Appointment Reminder",
+
+  attachments: [
+    {
+      filename: "qr.png",
+      path: qrImage,
+      cid: "qrimage@pams"
+    }
+  ],
+
+  html: `
+    <div style="background:#f4f6f8;padding:20px;font-family:Arial,sans-serif;">
+      
+      <table width="100%" cellpadding="0" cellspacing="0" 
+        style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+
+        <!-- HEADER -->
+        <tr>
+          <td style="background:linear-gradient(90deg,#f59e0b,#f97316);color:white;padding:20px;text-align:center;">
+            <h2 style="margin:0;">⏰ Appointment Reminder</h2>
+            <p style="margin:5px 0 0;font-size:14px;">
+              Your appointment is coming soon
+            </p>
+          </td>
+        </tr>
+
+        <!-- BODY -->
+        <tr>
+          <td style="padding:20px;color:#333;">
+
+            <p>Dear <b>${token.patient_name}</b>,</p>
+
+            <p style="margin-bottom:15px;">
+              This is a reminder for your upcoming appointment.
+            </p>
+
+            <table width="100%" cellpadding="8" style="font-size:14px;">
+              <tr>
+                <td style="font-weight:bold;">Token</td>
+                <td>#${token.token_number}</td>
+              </tr>
+
+              <tr>
+                <td style="font-weight:bold;">Department</td>
+                <td>${token.dept_name}</td>
+              </tr>
+
+              <tr>
+                <td style="font-weight:bold;">Doctor</td>
+                <td>${token.doc_name}</td>
+              </tr>
+
+              <tr>
+                <td style="font-weight:bold;">Date</td>
+                <td>${new Date(token.date).toDateString()}</td>
+              </tr>
+
+              <tr>
+                <td style="font-weight:bold;">Time</td>
+                <td>${token.time_slot}</td>
+              </tr>
+            </table>
+
+            <!-- QR -->
+            <div style="text-align:center;margin-top:20px;">
+              <img src="cid:qrimage@pams" width="150" />
+              <p style="font-size:12px;color:#666;margin-top:5px;">
+                Scan this QR at hospital
+              </p>
+            </div>
+
+            <!-- NOTE -->
+            <div style="margin-top:15px;padding:12px;background:#fff7ed;border-radius:6px;">
+              Please arrive 10 minutes before your scheduled time.
+            </div>
+
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td style="text-align:center;padding:15px;font-size:12px;color:#888;">
+            Thank you for choosing our service 🙏
+          </td>
+        </tr>
+
+      </table>
+    </div>
+  `
+});
 
         // mark sent
         await db.query(
