@@ -827,6 +827,10 @@ cron.schedule("*/5 * * * *", async () => {
 
     const now = new Date();
 
+// convert to IST manually
+const IST_OFFSET = 5.5 * 60 * 60 * 1000;
+const nowIST = new Date(now.getTime() + IST_OFFSET);
+
     for (let token of result.rows) {
 
       // 🔥 extract start time
@@ -847,11 +851,11 @@ const day = token.date.getDate();
   minute,
   second
 );
-      const diff = appointmentTime - now;
+      const diff = appointmentTime - nowIST;
 
       const diffHours = diff / (1000 * 60 * 60);
 
-      console.log("NOW:", now);
+      console.log("NOW:", nowIST);
       console.log("APPT:", appointmentTime);
       console.log("DIFF HOURS:", diffHours);
       console.log("----------------");
