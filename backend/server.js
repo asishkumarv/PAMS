@@ -771,6 +771,13 @@ app.put("/api/tokens/postpone", async (req, res) => {
           from: "yourgmail@gmail.com",
           to: token.email,
           subject: "Appointment Rescheduled 🔄",
+            attachments: [
+    {
+      filename: "qr.png",
+      path: qrImage,        // base64 works here
+      cid: "qrimage@pams"   // unique id
+    }
+  ],
           html: `
             <div style="padding:20px;font-family:Arial">
               <h2>🔄 Appointment Rescheduled</h2>
@@ -783,10 +790,9 @@ app.put("/api/tokens/postpone", async (req, res) => {
               <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
               <p><b>Time:</b> ${token.time_slot}</p>
 
-              <div style="text-align:center;margin-top:15px;">
-                <img src="${qrImage}" width="150"/>
-              </div>
-
+            <div style="text-align:center;margin-top:20px;">
+              <img src="cid:qrimage@pams" width="150" />
+            </div>
               <p style="margin-top:10px;">
                 Please arrive 10 minutes early.
               </p>
