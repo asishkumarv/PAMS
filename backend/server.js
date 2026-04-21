@@ -9,16 +9,18 @@ const transporter = require("./mailer");
 const QRCode = require("qrcode");
 const cron = require("node-cron");
 const twilio = require("twilio");
-const express = require("express");
+
 const gTTS = require("gtts");
 const fs = require("fs");
 const path = require("path");
+
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
 app.use(cors());
 app.use(express.json());
+
 function generateHindiAudio(text, filename) {
   return new Promise((resolve, reject) => {
 
