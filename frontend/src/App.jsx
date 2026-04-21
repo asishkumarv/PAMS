@@ -13,6 +13,7 @@ import BookToken from "./pages/BookToken";
 import SetAppointment from "./pages/SetAppointment";
 import PatientBookToken from "./pages/PatientBookToken";
 import MyTokens from "./pages/MyTokens";
+import SendMessage from "./pages/SendMessage";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/sdashboard" element={<StaffDashboard />} />
         <Route path="/book-token" element={<BookToken />} />
         <Route path="/set-appointment" element={<SetAppointment />} />
+        <Route path="/send-message" element={<SendMessage />} />
         {/* Protected */}
 <Route
   path="/dashboard"

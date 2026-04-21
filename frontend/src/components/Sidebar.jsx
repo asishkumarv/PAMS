@@ -1,7 +1,8 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Sidebar({ close }) {
   const nav = useNavigate();
+  const location = useLocation(); // 🔥 important
 
   const logout = () => {
     localStorage.clear();
@@ -12,13 +13,12 @@ export default function Sidebar({ close }) {
     { name: "Dashboard", path: "/sdashboard" },
     { name: "Book Token", path: "/book-token" },
     { name: "Set Appointment", path: "/set-appointment" },
-    
+    { name: "Send Message", path: "/send-message" },
   ];
 
   return (
     <div className="h-full flex flex-col bg-white shadow-lg p-5 w-64">
 
-      {/* 🔥 Mobile Close Button */}
       {close && (
         <button
           onClick={close}
@@ -28,30 +28,35 @@ export default function Sidebar({ close }) {
         </button>
       )}
 
-      {/* Logo */}
       <h1 className="text-2xl font-bold text-blue-600 mb-8">
         PAMS
       </h1>
 
-      {/* Menu */}
       <nav className="flex flex-col gap-2">
 
-        {menu.map((item, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              nav(item.path);
-              close && close(); // close on mobile click
-            }}
-            className="text-left px-4 py-3 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition"
-          >
-            {item.name}
-          </button>
-        ))}
+        {menu.map((item, i) => {
+          const isActive = location.pathname === item.path;
+
+          return (
+            <button
+              key={i}
+              onClick={() => {
+                nav(item.path);
+                close && close();
+              }}
+              className={`text-left px-4 py-3 rounded-xl transition ${
+                isActive
+                  ? "bg-blue-600 text-white shadow"
+                  : "hover:bg-blue-50 hover:text-blue-600"
+              }`}
+            >
+              {item.name}
+            </button>
+          );
+        })}
 
       </nav>
 
-      {/* Logout */}
       <div className="mt-auto pt-6">
         <button
           onClick={logout}

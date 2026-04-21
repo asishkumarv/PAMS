@@ -393,6 +393,22 @@ async function sendSMS(to, message) {
     console.log("SMS ERROR ❌", err.message);
   }
 }
+
+app.post("/api/bulk-sms", async (req, res) => {
+  const { message } = req.body;
+
+  const users = await db.query("SELECT mobile FROM tokens");
+
+  await Promise.all(
+    users.rows.map(user =>
+      sendSMS(user.mobile, message)
+    )
+  );
+
+  res.json({ msg: "Bulk SMS sent ✅" });
+});
+
+
 app.post("/api/tokens/create", async (req, res) => {
   try {
     const { patient_name, mobile,email, department, doctor, date,time_slot, appointment_id } = req.body;
@@ -932,7 +948,6 @@ app.get("/api/appointments/:doctorId/:date", async (req, res) => {
 
   res.json(result.rows);
 });
-
 
 app.post("/api/appointments/create", async (req, res) => {
   try {
