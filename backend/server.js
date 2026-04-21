@@ -517,6 +517,53 @@ if (email) {
     res.status(500).json({ error: err.message });
   }
 });
+const hindiNumbersFull = {
+  1: "एक",
+  2: "दो",
+  3: "तीन",
+  4: "चार",
+  5: "पांच",
+  6: "छह",
+  7: "सात",
+  8: "आठ",
+  9: "नौ",
+  10: "दस",
+  11: "ग्यारह",
+  12: "बारह",
+  13: "तेरह",
+  14: "चौदह",
+  15: "पंद्रह",
+  16: "सोलह",
+  17: "सत्रह",
+  18: "अठारह",
+  19: "उन्नीस",
+  20: "बीस",
+  21: "इक्कीस",
+  22: "बाईस",
+  23: "तेइस",
+  24: "चौबीस",
+  25: "पच्चीस",
+  26: "छब्बीस",
+  27: "सत्ताईस",
+  28: "अट्ठाईस",
+  29: "उनतीस",
+  30: "तीस",
+  31: "इकतीस"
+};
+
+function numberToHindi(num) {
+  return hindiNumbersFull[num] || num;
+}
+
+const monthsHindi = [
+  "जनवरी","फरवरी","मार्च","अप्रैल","मई","जून",
+  "जुलाई","अगस्त","सितंबर","अक्टूबर","नवंबर","दिसंबर"
+];
+
+function formatDateHindi(dateStr) {
+  const d = new Date(dateStr);
+  return `${d.getDate()} ${monthsHindi[d.getMonth()]} ${d.getFullYear()}`;
+}
 
 async function makeCall(to, messageType, data) {
   try {
@@ -535,33 +582,82 @@ async function makeCall(to, messageType, data) {
 }
 
 app.post("/voice", (req, res) => {
-  const { type, token, date, time, name } = req.query;
+  const name = decodeURIComponent(req.query.name || "");
+  const token = req.query.token;
+  const date = decodeURIComponent(req.query.date || "");
+  const time = decodeURIComponent(req.query.time || "");
+  const type = req.query.type;
 
-  let message = "";
+  // Hindi helpers
+  const tokenHindi = numberToHindi(token);
+  const dateHindi = formatDateHindi(date);
 
+  let messageEN = "";
+  let messageHI = "";
+
+  // ✅ BOOKING
   if (type === "booking") {
-    message = `
-      Hello ${name}.
-      Your appointment is confirmed.
-      On Date ${date}.
-      Time ${time}.
-      Token number ${token}.
+    messageEN = `
+Hello ${name}.
+Your appointment is confirmed.
+On date ${date}.
+Time ${time}.
+Token number ${token}.
+    `;
+
+    messageHI = `
+नमस्ते ${name}.
+आपकी अपॉइंटमेंट कन्फर्म हो गई है।
+तारीख ${dateHindi}.
+समय ${time}.
+टोकन नंबर ${tokenHindi}.
     `;
   }
 
+  // ✅ POSTPONE
   if (type === "postpone") {
-    message = `
-      Hello ${name}.
-      Your appointment has been rescheduled.
-      TO Date ${date}.
-      New time is ${time}.
-      Token number ${token}.
+    messageEN = `
+Hello ${name}.
+Your appointment has been rescheduled.
+To date ${date}.
+New time is ${time}.
+Token number ${token}.
+    `;
+
+    messageHI = `
+नमस्ते ${name}.
+आपकी अपॉइंटमेंट बदल दी गई है।
+नई तारीख ${dateHindi}.
+समय ${time}.
+टोकन नंबर ${tokenHindi}.
     `;
   }
 
+  res.type("text/xml");
+  res.send(`
+<Response>
+
+  <!-- English Voice -->
+  <Say voice="alice" language="en-US">
+    ${messageEN}
+  </Say>
+
+  <!-- Hindi Voice -->
+  <Say voice="alice" language="hi-IN">
+    ${messageHI}
+  </Say>
+
+</Response>
+  `);
+});
   const twiml = `
 <Response>
   <Say voice="alice">${message}</Say>
+</Response>
+<Response>
+  <Say language="hi-IN" voice="alice">
+    ${message}
+  </Say>
 </Response>
   `;
 
