@@ -588,14 +588,12 @@ app.post("/voice", (req, res) => {
   const time = decodeURIComponent(req.query.time || "");
   const type = req.query.type;
 
-  // Hindi helpers
   const tokenHindi = numberToHindi(token);
   const dateHindi = formatDateHindi(date);
 
   let messageEN = "";
   let messageHI = "";
 
-  // ✅ BOOKING
   if (type === "booking") {
     messageEN = `
 Hello ${name}.
@@ -614,7 +612,6 @@ Token number ${token}.
     `;
   }
 
-  // ✅ POSTPONE
   if (type === "postpone") {
     messageEN = `
 Hello ${name}.
@@ -636,33 +633,17 @@ Token number ${token}.
   res.type("text/xml");
   res.send(`
 <Response>
-
-  <!-- English Voice -->
   <Say voice="alice" language="en-US">
     ${messageEN}
   </Say>
 
-  <!-- Hindi Voice -->
+  <Pause length="1"/>
+
   <Say voice="alice" language="hi-IN">
     ${messageHI}
   </Say>
-
 </Response>
   `);
-
-  const twiml = `
-<Response>
-  <Say voice="alice">${message}</Say>
-</Response>
-<Response>
-  <Say language="hi-IN" voice="alice">
-    ${message}
-  </Say>
-</Response>
-  `;
-
-  res.type("text/xml");
-  res.send(twiml);
 });
 
 app.post("/api/tokens/pcreate", async (req, res) => {
