@@ -535,7 +535,7 @@ async function makeCall(to, messageType, data) {
 }
 
 app.post("/voice", (req, res) => {
-  const { type, token, time, name } = req.query;
+  const { type, token, date, time, name } = req.query;
 
   let message = "";
 
@@ -543,7 +543,7 @@ app.post("/voice", (req, res) => {
     message = `
       Hello ${name}.
       Your appointment is confirmed.
-      On Date ${new Date(token.date).toDateString()}.
+      On Date ${date}.
       Time ${time}.
       Token number ${token}.
     `;
@@ -553,7 +553,7 @@ app.post("/voice", (req, res) => {
     message = `
       Hello ${name}.
       Your appointment has been rescheduled.
-      TO Date ${new Date(token.date).toDateString()}.
+      TO Date ${date}.
       New time is ${time}.
       Token number ${token}.
     `;
@@ -729,18 +729,10 @@ if (email) {
     `
   });
 }
-const dateObj = new Date(token.date);
 
-const formattedDate = isNaN(dateObj)
-  ? "unknown date"
-  : dateObj.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
 await makeCall(token.mobile, "booking", {
   token: token.token_number,
-  date: formattedDate,
+  date: new Date(token.date).toDateString(),
   time: token.time_slot,
   name: token.patient_name,
 });
@@ -976,16 +968,10 @@ app.put("/api/tokens/postpone", async (req, res) => {
       console.log("No email found ❌");
     }
 
-    const formattedDate = isNaN(dateObj)
-  ? "unknown date"
-  : dateObj.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+
 await makeCall(token.mobile, "postpone", {
   token: token.token_number,
-  date: formattedDate,
+  date: new Date(token.date).toDateString(),
   time: token.time_slot,
   name: token.patient_name,
 });
