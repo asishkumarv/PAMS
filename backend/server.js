@@ -9,14 +9,40 @@ const transporter = require("./mailer");
 const QRCode = require("qrcode");
 const cron = require("node-cron");
 const twilio = require("twilio");
-
+const express = require("express");
+const gTTS = require("gtts");
+const fs = require("fs");
+const path = require("path");
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
 app.use(cors());
 app.use(express.json());
+function generateHindiAudio(text, filename) {
+  return new Promise((resolve, reject) => {
 
+    const dir = path.join(__dirname, "public/audio");
+
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const filePath = path.join(dir, filename);
+
+    const gtts = new gTTS(text, "hi");
+
+    gtts.save(filePath, (err) => {
+      if (err) {
+        console.log("TTS ERROR ❌", err);
+        return reject(err);
+      }
+
+      console.log("Audio generated at:", filePath);
+      resolve(`/audio/${filename}`);
+    });
+  });
+}
 app.use("/audio", express.static("public/audio"));
 
 app.post("/api/staff/register", async (req, res) => {
