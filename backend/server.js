@@ -8,7 +8,12 @@ const jwt = require("jsonwebtoken");
 const transporter = require("./mailer");
 const QRCode = require("qrcode");
 const cron = require("node-cron");
+const twilio = require("twilio");
 
+const client = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 app.use(cors());
 app.use(express.json());
 
@@ -513,6 +518,54 @@ if (email) {
   }
 });
 
+async function makeCall(to, messageType, data) {
+  try {
+    await client.calls.create({
+      url: `https://pams-phuv.onrender.com/voice?type=${messageType}&token=${data.token}&time=${data.time}&name=${data.name}`,
+      to: `+91${to}`,
+      from: process.env.TWILIO_NUMBER,
+    });
+
+    console.log("CALL INITIATED ✅");
+  } catch (err) {
+    console.log("CALL ERROR ❌", err.message);
+  }
+}
+
+app.post("/voice", (req, res) => {
+  const { type, token, time, name } = req.query;
+
+  let message = "";
+
+  if (type === "booking") {
+    message = `
+      Hello ${name}.
+      Your appointment is confirmed.
+      OnD Date ${new Date(token.date).toDateString()}.
+      Time ${time}.
+      Token number ${token}.
+    `;
+  }
+
+  if (type === "postpone") {
+    message = `
+      Hello ${name}.
+      Your appointment has been rescheduled.
+      TO Date ${new Date(token.date).toDateString()}.
+      New time is ${time}.
+      Token number ${token}.
+    `;
+  }
+
+  const twiml = `
+<Response>
+  <Say voice="alice">${message}</Say>
+</Response>
+  `;
+
+  res.type("text/xml");
+  res.send(twiml);
+});
 
 app.post("/api/tokens/pcreate", async (req, res) => {
   try {
@@ -674,7 +727,12 @@ if (email) {
     `
   });
 }
-
+await makeCall(token.mobile, "booking", {
+  token: token.token_number,
+  date: new Date(token.date).toDateString(),
+  time: token.time_slot,
+  name: token.patient_name,
+});
     // res.json(token);
     res.json(result.rows[0]);
 
@@ -906,7 +964,12 @@ app.put("/api/tokens/postpone", async (req, res) => {
     } else {
       console.log("No email found ❌");
     }
-
+await makeCall(token.mobile, "postpone", {
+  token: token.token_number,
+  date: new Date(token.date).toDateString(),
+  time: token.time_slot,
+  name: token.patient_name,
+});
     res.json({ msg: "Token postponed & mail handled ✅" });
 
   } catch (err) {
