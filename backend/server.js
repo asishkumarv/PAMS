@@ -416,7 +416,7 @@ app.post("/api/bulk-sms", async (req, res) => {
   const { message } = req.body;
 
   const users = await db.query(
-    "SELECT mobile, email, patient_name FROM patients"
+    "SELECT mobile, email, name FROM patients"
   );
 
   await Promise.all(
