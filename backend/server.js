@@ -649,7 +649,7 @@ Token number ${token}.
 
 </Response>
   `);
-});
+
   const twiml = `
 <Response>
   <Say voice="alice">${message}</Say>
