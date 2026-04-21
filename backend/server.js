@@ -520,8 +520,10 @@ if (email) {
 
 async function makeCall(to, messageType, data) {
   try {
+    const url = `https://pams-phuv.onrender.com/voice?type=${encodeURIComponent(messageType)}&token=${encodeURIComponent(data.token)}&date=${encodeURIComponent(data.date)}&time=${encodeURIComponent(data.time)}&name=${encodeURIComponent(data.name)}`;
+
     await client.calls.create({
-      url: `https://pams-phuv.onrender.com/voice?type=${messageType}&token=${data.token}&date=${encodeURIComponent(data.date)}&time=${data.time}&name=${data.name}`,
+      url: url,
       to: `+91${to}`,
       from: process.env.TWILIO_NUMBER,
     });
