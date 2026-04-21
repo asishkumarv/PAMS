@@ -393,21 +393,52 @@ async function sendSMS(to, message) {
     console.log("SMS ERROR ❌", err.message);
   }
 }
+async function sendEmail(to, subject, message) {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject,
+      html: `
+        <div style="font-family:Arial;padding:20px">
+          <h2>📢 Notification</h2>
+          <p>${message}</p>
+        </div>
+      `,
+    });
 
+    console.log("EMAIL SENT ✅");
+  } catch (err) {
+    console.log("EMAIL ERROR ❌", err.message);
+  }
+}
 app.post("/api/bulk-sms", async (req, res) => {
   const { message } = req.body;
 
-  const users = await db.query("SELECT mobile FROM tokens");
-
-  await Promise.all(
-    users.rows.map(user =>
-      sendSMS(user.mobile, message)
-    )
+  const users = await db.query(
+    "SELECT mobile, email, patient_name FROM patients"
   );
 
-  res.json({ msg: "Bulk SMS sent ✅" });
-});
+  await Promise.all(
+    users.rows.map(async (user) => {
+      // 📲 SMS
+      if (user.mobile) {
+        await sendSMS(user.mobile, message);
+      }
 
+      // 📧 EMAIL
+      if (user.email) {
+        await sendEmail(
+          user.email,
+          "PAMS Notification",
+          `Hello ${user.patient_name || ""},<br/><br/>${message}`
+        );
+      }
+    })
+  );
+
+  res.json({ msg: "Bulk SMS + Email sent ✅" });
+});
 
 app.post("/api/tokens/create", async (req, res) => {
   try {
