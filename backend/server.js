@@ -521,7 +521,7 @@ if (email) {
 async function makeCall(to, messageType, data) {
   try {
     await client.calls.create({
-      url: `https://pams-phuv.onrender.com/voice?type=${messageType}&token=${data.token}&time=${data.time}&name=${data.name}`,
+      url: `https://pams-phuv.onrender.com/voice?type=${messageType}&token=${data.token}&date=${encodeURIComponent(data.date)}&time=${data.time}&name=${data.name}`,
       to: `+91${to}`,
       from: process.env.TWILIO_NUMBER,
     });
@@ -541,7 +541,7 @@ app.post("/voice", (req, res) => {
     message = `
       Hello ${name}.
       Your appointment is confirmed.
-      OnD Date ${new Date(token.date).toDateString()}.
+      On Date ${new Date(token.date).toDateString()}.
       Time ${time}.
       Token number ${token}.
     `;
