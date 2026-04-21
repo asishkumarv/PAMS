@@ -1016,10 +1016,10 @@ const day = token.date.getDate();
 
       const diffHours = diff / (1000 * 60 * 60);
 
-      console.log("NOW:", nowIST);
-      console.log("APPT:", appointmentTime);
-      console.log("DIFF HOURS:", diffHours);
-      console.log("----------------");
+      // console.log("NOW:", nowIST);
+      // console.log("APPT:", appointmentTime);
+      // console.log("DIFF HOURS:", diffHours);
+      // console.log("----------------");
 
       const FOUR_HOURS = 4 * 60 * 60 * 1000;
 
