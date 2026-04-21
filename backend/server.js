@@ -18,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/audio", express.static("public/audio"));
+
 app.post("/api/staff/register", async (req, res) => {
   try {
     const { name, email, password, secretKey } = req.body;

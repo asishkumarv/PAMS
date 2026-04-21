@@ -4,12 +4,24 @@ const path = require("path");
 
 function generateHindiAudio(text, filename) {
   return new Promise((resolve, reject) => {
-    const filePath = path.join(__dirname, "public/audio", filename);
+    const dir = path.join(__dirname, "public/audio");
+
+    // ensure folder exists
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const filePath = path.join(dir, filename);
 
     const gtts = new gTTS(text, "hi");
 
     gtts.save(filePath, (err) => {
-      if (err) return reject(err);
+      if (err) {
+        console.log("TTS ERROR ❌", err);
+        return reject(err);
+      }
+
+      console.log("Audio generated:", filename);
       resolve(`/audio/${filename}`);
     });
   });
