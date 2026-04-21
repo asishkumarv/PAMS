@@ -729,9 +729,18 @@ if (email) {
     `
   });
 }
+const dateObj = new Date(token.date);
+
+const formattedDate = isNaN(dateObj)
+  ? "unknown date"
+  : dateObj.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
 await makeCall(token.mobile, "booking", {
   token: token.token_number,
-  date: new Date(token.date).toDateString(),
+  date: formattedDate,
   time: token.time_slot,
   name: token.patient_name,
 });
@@ -966,9 +975,17 @@ app.put("/api/tokens/postpone", async (req, res) => {
     } else {
       console.log("No email found ❌");
     }
+
+    const formattedDate = isNaN(dateObj)
+  ? "unknown date"
+  : dateObj.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
 await makeCall(token.mobile, "postpone", {
   token: token.token_number,
-  date: new Date(token.date).toDateString(),
+  date: formattedDate,
   time: token.time_slot,
   name: token.patient_name,
 });
