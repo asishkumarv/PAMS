@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
+import { Html5QrcodeScanner } from "html5-qrcode";
 
 export default function StaffDashboard() {
   const [stats, setStats] = useState({});
@@ -16,6 +17,11 @@ const [showModal, setShowModal] = useState(false);
 const [selectedToken, setSelectedToken] = useState(null);
 const [availableSlots, setAvailableSlots] = useState([]);
 const [selectedSlot, setSelectedSlot] = useState(null);
+const [scanOpen, setScanOpen] = useState(false);
+const [scannedToken, setScannedToken] = useState(null);
+const [lastScannedId, setLastScannedId] = useState(null);
+const [scanSuccess, setScanSuccess] = useState(false);
+const [scannedSet, setScannedSet] = useState(new Set());
   const fetchData = async () => {
     const res1 = await API.get("/api/staff/dashboard");
     const res2 = await API.get("/api/tokens/today");
@@ -24,22 +30,27 @@ const [selectedSlot, setSelectedSlot] = useState(null);
     setTokens(res2.data);
   };
 
-const updateStatus = async (id, status) => {
-  const actionText = status === "ARRIVED" ? "mark as ARRIVED" : "cancel this token";
+const updateStatus = async (id, status, skipConfirm = false) => {
+  const actionText =
+    status === "ARRIVED"
+      ? "mark as ARRIVED"
+      : "cancel this token";
 
-  const confirmAction = window.confirm(
-    `Are you sure you want to ${actionText}?`
-  );
-
-  if (!confirmAction) return;
+  // ✅ Only confirm if NOT from QR scan
+  if (!skipConfirm) {
+    const confirmAction = window.confirm(
+      `Are you sure you want to ${actionText}?`
+    );
+    if (!confirmAction) return;
+  }
 
   try {
     await API.put("/api/tokens/update", { id, status });
 
     alert(
-      status === "ARRIVED"
-        ? "Token marked as ARRIVED ✅"
-        : "Token cancelled successfully ❌"
+      status === "CANCELLED"
+        ? "Token marked as CANCELLED ✅"
+        : "Token marked as ARRIVED ✅"
     );
 
     fetchData();
@@ -102,6 +113,68 @@ const handlePostpone = async () => {
     alert("Postpone failed ❌");
   }
 };
+const playBeep = () => {
+  const audio = new Audio(
+    "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+  );
+  audio.play();
+};
+useEffect(() => {
+  if (scanOpen) {
+    const scanner = new Html5QrcodeScanner(
+      "qr-reader",
+      {
+        fps: 10,
+        qrbox: 250,
+      },
+      false
+    );
+
+scanner.render(
+  (decodedText) => {
+    try {
+      const data = JSON.parse(decodedText);
+
+      if (!data.token_id) {
+        alert("Invalid QR ❌");
+        return;
+      }
+
+      if (scannedSet.has(data.token_id)) {
+        console.log("Already scanned");
+        return;
+      }
+
+      playBeep();
+
+      const token = tokens.find(t => t.id === data.token_id);
+
+      if (token) {
+        setScannedToken(token); // ✅ FIXED
+      }
+
+      setScannedSet(prev => new Set(prev).add(data.token_id));
+      setLastScannedId(data.token_id);
+      setScanSuccess(true);
+
+      updateStatus(data.token_id, "ARRIVED", true);
+
+      setTimeout(() => setScanSuccess(false), 2000);
+
+      setScanOpen(false);
+
+    } catch (err) {
+      alert("Invalid QR format ❌");
+    }
+  },
+  () => {}
+);
+    return () => {
+      scanner.clear().catch(err => console.log(err));
+    };
+  }
+}, [scanOpen]);
+
 const filteredTokens = tokens.filter(t => {
   return (
     (!selectedDept || t.department == selectedDept) &&
@@ -112,7 +185,11 @@ const filteredTokens = tokens.filter(t => {
 });
  return (
   <Layout>
-
+{scanSuccess && (
+  <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-bounce">
+    ✅ Patient Marked as Arrived
+  </div>
+)}
     <div className="w-full min-h-screen bg-gray-50 px-4 md:px-6">
 {showModal && (
   <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 overflow-hidden">
@@ -202,7 +279,12 @@ const filteredTokens = tokens.filter(t => {
             {stats.completed || 0}
           </h2>
         </div>
-
+<button
+  onClick={() => setScanOpen(true)}
+  className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
+>
+  📷 Scan QR
+</button>
       </div>
 
       {/* TABLE */}
@@ -276,10 +358,14 @@ const filteredTokens = tokens.filter(t => {
       t.status === "ARRIVED" || t.status === "CANCELLED";
 
     return (
-      <tr
-        key={t.id}
-        className="border-t hover:bg-gray-50 transition"
-      >
+<tr
+  key={t.id}
+  className={`border-t transition ${
+    lastScannedId === t.id
+      ? "bg-green-100 animate-pulse"
+      : "hover:bg-gray-50"
+  }`}
+>
         <td className="p-3 font-medium">
           {t.token_number}
         </td>
@@ -415,6 +501,64 @@ const filteredTokens = tokens.filter(t => {
 </div>     
  </div>
 </div>
+{scanOpen && (
+  <div className="fixed inset-0 bg-black/80 flex justify-center items-center z-50">
+    
+    <div className="bg-white p-4 rounded-xl w-[95%] max-w-md">
+
+      <h2 className="text-lg font-bold text-center mb-2">
+        📷 Scan QR Code
+      </h2>
+
+      <div className="relative">
+        <div id="qr-reader" className="rounded-lg overflow-hidden" />
+
+        {/* Overlay box */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-48 h-48 border-4 border-green-400 rounded-lg animate-pulse"></div>
+        </div>
+      </div>
+
+      <p className="text-center text-sm text-gray-500 mt-2">
+        Align QR inside the box
+      </p>
+
+      <button
+        onClick={() => setScanOpen(false)}
+        className="w-full mt-3 bg-gray-300 py-2 rounded"
+      >
+        Close
+      </button>
+
+    </div>
+  </div>
+)}
+{scannedToken && (
+  <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50">
+
+    <div className="bg-white p-5 rounded-xl w-[90%] max-w-md text-center">
+
+      <h2 className="text-xl font-bold text-green-600 mb-3">
+        ✅ Token Arrived
+      </h2>
+
+      <p><b>Token:</b> #{scannedToken.token_number}</p>
+      <p><b>Name:</b> {scannedToken.patient_name}</p>
+      <p><b>Department:</b> {scannedToken.dept_name}</p>
+      <p><b>Doctor:</b> {scannedToken.doc_name}</p>
+      <p><b>Time:</b> {scannedToken.time_slot}</p>
+
+      <button
+        onClick={() => setScannedToken(null)}
+        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        OK
+      </button>
+
+    </div>
+
+  </div>
+)}
     </Layout>
     
   );
