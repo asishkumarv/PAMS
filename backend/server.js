@@ -431,7 +431,7 @@ app.post("/api/bulk-sms", async (req, res) => {
         await sendEmail(
           user.email,
           "PAMS Notification",
-          `Hello ${user.patient_name || ""},<br/><br/>${message}`
+          `Hello ${user.name || ""},<br/><br/>${message}`
         );
       }
     })
