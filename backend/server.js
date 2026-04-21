@@ -380,7 +380,19 @@ app.put("/api/tokens/update", async (req, res) => {
 
   res.json({ msg: "Updated ✅" });
 });
+async function sendSMS(to, message) {
+  try {
+    await client.messages.create({
+      body: message,
+      from: process.env.TWILIO_NUMBER,
+      to: `+91${to}`,
+    });
 
+    console.log("SMS SENT ✅");
+  } catch (err) {
+    console.log("SMS ERROR ❌", err.message);
+  }
+}
 app.post("/api/tokens/create", async (req, res) => {
   try {
     const { patient_name, mobile,email, department, doctor, date,time_slot, appointment_id } = req.body;
@@ -538,6 +550,15 @@ if (email) {
     `
   });
 }
+await sendSMS(token.mobile, `
+Hello ${token.patient_name},
+Your appointment is confirmed.
+Doctor: ${token.doc_name}
+Department: ${token.dept_name}
+Date: ${token.date}
+Time: ${token.time_slot}
+Token: ${token.token_number}
+`);
 
     res.json(result.rows[0]);
 
@@ -852,6 +873,15 @@ await makeCall(token.mobile, "booking", {
   time: token.time_slot,
   name: token.patient_name,
 });
+await sendSMS(token.mobile, `
+Hello ${token.patient_name},
+Your appointment is confirmed.
+Doctor: ${token.doc_name}
+Department: ${token.dept_name}
+Date: ${token.date}
+Time: ${token.time_slot}
+Token: ${token.token_number}
+`);
     // res.json(token);
     res.json(result.rows[0]);
 
@@ -1062,6 +1092,8 @@ app.put("/api/tokens/postpone", async (req, res) => {
               <p>Dear ${token.patient_name},</p>
               <p>Your appointment has been updated:</p>
               <p><b>Token:</b> #${token.token_number}</p>
+              <p><b>Department:</b> ${token.dept_name}</p>
+              <p><b>Doctor:</b> ${token.doc_name}</p>
               <p><b>Date:</b> ${new Date(token.date).toDateString()}</p>
               <p><b>Time:</b> ${token.time_slot}</p>
 
@@ -1091,6 +1123,17 @@ await makeCall(token.mobile, "postpone", {
   time: token.time_slot,
   name: token.patient_name,
 });
+
+await sendSMS(token.mobile, `
+Hello ${token.patient_name},
+Your appointment is rescheduled.
+Doctor: ${token.doc_name}
+Department: ${token.dept_name}
+New Date: ${token.date}
+Time: ${token.time_slot}
+Token: ${token.token_number}
+`);
+
     res.json({ msg: "Token postponed & mail handled ✅" });
 
   } catch (err) {
