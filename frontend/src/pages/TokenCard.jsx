@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import API from "../services/api";
+import jsPDF from "jspdf";
 
 export default function TokenCard({ token }) {
   const [text, setText] = useState(token.prescription || "");
@@ -7,6 +8,8 @@ export default function TokenCard({ token }) {
   const [showMic, setShowMic] = useState(false);
 
   const recognitionRef = useRef(null);
+  const [generated, setGenerated] = useState("");
+const [loadingAI, setLoadingAI] = useState(false);
 
   // 🔥 INIT ONLY ONCE
   if (!recognitionRef.current) {
@@ -48,18 +51,53 @@ export default function TokenCard({ token }) {
 //     });
 //     alert("Prescription Saved ✅");
 //   };
-const save = async () => {
+const generate = async () => {
   try {
-    await API.put("/api/tokens/prescription", {
-      tokenId: token.id,
-      prescription: text
+    setLoadingAI(true);
+
+    const res = await API.post("/api/prescription/preview", {
+      text
     });
 
-    alert("Prescription Saved ✅");
+    setGenerated(res.data.formatted);
 
-  } catch (err) {
-    alert("Save failed ❌");
+  } catch {
+    alert("AI failed ❌");
+  } finally {
+    setLoadingAI(false);
   }
+};
+const save = async () => {
+  const finalText = generated || text;
+
+  await API.put("/api/tokens/prescription", {
+    tokenId: token.id,
+    prescription: finalText
+  });
+
+  alert("Saved & Sent ✅");
+};
+
+const downloadPDF = () => {
+  const doc = new jsPDF();
+
+  const content = `
+Hospital: PAMS
+
+Patient: ${token.patient_name}
+Doctor: ${token.doc_name}
+Department: ${token.dept_name}
+
+Date: ${token.date}
+Time: ${token.time_slot}
+
+----------------------------------
+
+${generated || text}
+  `;
+
+  doc.text(content, 10, 10);
+  doc.save(`Prescription_${token.token_number}.pdf`);
 };
 
   return (
@@ -94,6 +132,31 @@ const save = async () => {
         className="w-full border rounded-xl p-3 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none"
         rows={3}
       />
+      {/* AI BUTTON */}
+<button
+  onClick={generate}
+  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm"
+>
+  {loadingAI ? "Generating..." : "🤖 Generate Prescription"}
+</button>
+
+{/* GENERATED OUTPUT */}
+{generated && (
+  <div className="mt-4">
+
+    <h4 className="font-semibold text-blue-600 mb-2">
+      AI Generated (Editable)
+    </h4>
+
+    <textarea
+      value={generated}
+      onChange={(e) => setGenerated(e.target.value)}
+      className="w-full border rounded-xl p-3 text-sm bg-green-50"
+      rows={5}
+    />
+
+  </div>
+)}
 
       {/* BUTTONS */}
       <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
@@ -108,7 +171,12 @@ const save = async () => {
         >
           {listening ? "⏹ Stop" : "🎤 Start"}
         </button>
-
+<button
+  onClick={downloadPDF}
+  className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm"
+>
+  📄 Download PDF
+</button>
         <button
           onClick={save}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"

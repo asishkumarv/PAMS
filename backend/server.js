@@ -136,6 +136,26 @@ app.get("/api/doctor/tokens/:id", async (req, res) => {
 
 const sendPrescriptionMail = require("./premailer");
 const formatPrescription = require("./formatPrescription");
+app.post("/api/prescription/preview", async (req, res) => {
+  try {
+    const { text } = req.body;
+
+    let formatted = text;
+
+    if (text && text.trim()) {
+      try {
+        formatted = await formatPrescription(text);
+      } catch (err) {
+        console.log("AI ERROR:", err.message);
+      }
+    }
+
+    res.json({ formatted });
+
+  } catch (err) {
+    res.status(500).json({ msg: "Preview error ❌" });
+  }
+});
 
 app.put("/api/tokens/prescription", async (req, res) => {
   try {
@@ -189,6 +209,8 @@ if (prescription && prescription.trim()) {
     res.status(500).json({ msg: "Error ❌" });
   }
 });
+
+
 app.post("/api/staff/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
 
