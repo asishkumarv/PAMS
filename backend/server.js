@@ -165,15 +165,7 @@ app.put("/api/tokens/prescription", async (req, res) => {
     const tokenIdNum = Number(tokenId);
 
     // 🔥 AI FORMAT
-let formatted = prescription;
 
-if (prescription && prescription.trim()) {
-  try {
-    formatted = await formatPrescription(prescription);
-  } catch (err) {
-    console.log("AI ERROR:", err.message);
-  }
-}
 
     // ✅ SAVE
     await db.query(
