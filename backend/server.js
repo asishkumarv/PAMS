@@ -123,7 +123,9 @@ app.get("/api/doctor/tokens/:id", async (req, res) => {
       t.time_slot,
       t.date,
       t.prescription,
-      t.patient_name
+      t.patient_name,
+      t.doc_name,
+      t.dept_name
     FROM tokens t
     
     WHERE t.doctor = $1 AND status='ARRIVED'
@@ -165,7 +167,7 @@ app.put("/api/tokens/prescription", async (req, res) => {
     const tokenIdNum = Number(tokenId);
 
     // 🔥 AI FORMAT
-
+    let formatted = prescription;
 
     // ✅ SAVE
     await db.query(
