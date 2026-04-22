@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import PatientLayout from "../components/PatientLayout";
 import { QRCodeCanvas } from "qrcode.react";
+import jsPDF from "jspdf";
 
 export default function MyTokens() {
   const [tokens, setTokens] = useState([]);
@@ -50,7 +51,38 @@ const cancelToken = async (id) => {
     alert("Cancel failed ❌");
   }
 };
+const downloadPrescriptionPDF = (t) => {
+  if (!t?.prescription) {
+    alert("No prescription available ❌");
+    return;
+  }
 
+  const doc = new jsPDF();
+
+  const content = `
+ PAMS Hospital
+
+ Patient: ${t.patient_name}
+ Department: ${t.dept_name}
+ Doctor: ${t.doc_name}
+
+Date: ${new Date(t.date).toLocaleDateString("en-IN")}
+Time: ${t.time_slot}
+
+----------------------------------
+
+Prescription:
+
+${t.prescription}
+
+----------------------------------
+
+Follow instructions carefully.
+  `;
+
+  doc.text(content, 10, 10);
+  doc.save(`Prescription_${t.token_number}.pdf`);
+};
   return (
     <PatientLayout>
       <h1 className="text-xl font-bold mb-4">
@@ -170,9 +202,17 @@ const cancelToken = async (id) => {
         🩺 Prescription
       </h3>
 
-      <div className="bg-gray-50 p-3 rounded text-sm whitespace-pre-line">
+      <div className="bg-gray-50 p-3 rounded text-sm whitespace-pre-line mb-3">
         {t.prescription}
       </div>
+
+      {/* 🔥 DOWNLOAD BUTTON */}
+      <button
+        onClick={() => downloadPrescriptionPDF(t)}
+        className="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 rounded-lg text-sm"
+      >
+        📄 Download PDF
+      </button>
 
     </div>
 

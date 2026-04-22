@@ -11,7 +11,15 @@ async function formatPrescription(rawText) {
       {
         role: "system",
         content: `
-Convert doctor notes into structured prescription.
+
+ 
+Convert doctor speech into structured English prescription.
+
+IMPORTANT:
+- Input may be Hindi, Telugu, Tamil or mixed any indian language.
+- Translate everything to English
+- Then format as:
+
 
 Format:
 Medicine - Dosage - Frequency - Time
