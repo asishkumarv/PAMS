@@ -135,31 +135,27 @@ app.get("/api/doctor/tokens/:id", async (req, res) => {
 
 
 const sendPrescriptionMail = require("./premailer");
-const formatPrescription = require("./utils/formatPrescription");
+const formatPrescription = require("./formatPrescription");
 app.put("/api/tokens/prescription", async (req, res) => {
   try {
     const { tokenId, prescription } = req.body;
 
-    if (!tokenId || !prescription) {
-      return res.status(400).json({ msg: "Missing data ❌" });
-    }
-
-    // 🔥 1. FORMAT USING AI
+    // 🔥 AI FORMAT (Groq)
     let formatted = prescription;
 
     try {
       formatted = await formatPrescription(prescription);
     } catch (err) {
-      console.log("AI formatting failed, using raw text ⚠️");
+      console.log("AI failed, using raw text");
     }
 
-    // 🔥 2. SAVE TO DB
+    // SAVE
     await db.query(
       "UPDATE tokens SET prescription=$1 WHERE id=$2",
       [formatted, tokenId]
     );
 
-    // 🔥 3. GET PATIENT DETAILS
+    // GET PATIENT
     const result = await db.query(`
       SELECT p.email, p.name, d.name AS doctor_name
       FROM tokens t
@@ -170,7 +166,7 @@ app.put("/api/tokens/prescription", async (req, res) => {
 
     const patient = result.rows[0];
 
-    // 🔥 4. SEND EMAIL
+    // SEND EMAIL
     if (patient?.email) {
       await sendPrescriptionMail(
         patient.email,
@@ -180,14 +176,11 @@ app.put("/api/tokens/prescription", async (req, res) => {
       );
     }
 
-    res.json({
-      msg: "Prescription saved, formatted & email sent ✅",
-      data: formatted
-    });
+    res.json({ msg: "Saved + AI formatted + Email sent ✅" });
 
   } catch (err) {
-    console.log("ERROR:", err);
-    res.status(500).json({ msg: "Server error ❌" });
+    console.log(err);
+    res.status(500).json({ msg: "Error ❌" });
   }
 });
 

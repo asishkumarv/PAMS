@@ -1,22 +1,22 @@
-const OpenAI = require("openai");
+const Groq = require("groq-sdk");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 async function formatPrescription(rawText) {
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  const response = await groq.chat.completions.create({
+    model: "llama3-8b-8192", // 🔥 free fast model
     messages: [
       {
         role: "system",
         content: `
 Convert doctor notes into structured prescription.
 
-Format strictly like:
+Format:
 Medicine - Dosage - Frequency - Time
 
-Also include:
+Include:
 - Tablets
 - Syrups
 - Injections
@@ -25,14 +25,13 @@ Also include:
 
 Example:
 Paracetamol - 500mg - 2 times/day - Morning & Night
-Cough Syrup - 10ml - Once/day - Night
 `
       },
       {
         role: "user",
         content: rawText
       }
-    ]
+    ],
   });
 
   return response.choices[0].message.content;
