@@ -122,10 +122,10 @@ app.get("/api/doctor/tokens/:id", async (req, res) => {
       t.time_slot,
       t.date,
       t.prescription,
-      p.name AS patient_name
+      t.patient_name
     FROM tokens t
-    JOIN patients p ON t.patient_id = p.id
-    WHERE t.doctor_id = $1
+    
+    WHERE t.doctor = $1
     ORDER BY t.date, t.time_slot
   `, [id]);
 
