@@ -83,6 +83,59 @@ app.post("/api/staff/register", async (req, res) => {
   }
 });
 
+app.post("/api/doctor/register", async (req, res) => {
+  const { name, email, password, department_id } = req.body;
+
+  const hash = await bcrypt.hash(password, 10);
+
+  await db.query(
+    "INSERT INTO doctors(name,email,password,department_id) VALUES($1,$2,$3,$4)",
+    [name, email, hash, department_id]
+  );
+
+  res.json({ msg: "Doctor created ✅" });
+});
+
+app.post("/api/doctor/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  const result = await db.query(
+    "SELECT * FROM doctors WHERE email=$1",
+    [email]
+  );
+
+  const doctor = result.rows[0];
+
+  if (!doctor || !(await bcrypt.compare(password, doctor.password)))
+    return res.status(401).json({ msg: "Invalid ❌" });
+
+  res.json(doctor);
+});
+
+app.get("/api/doctor/tokens/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const result = await db.query(`
+    SELECT t.*, p.name AS patient_name
+    FROM tokens t
+    JOIN patients p ON t.patient_id = p.id
+    WHERE t.doc_id=$1 AND t.status='ARRIVED'
+  `,[id]);
+
+  res.json(result.rows);
+});
+
+app.put("/api/tokens/prescription", async (req, res) => {
+  const { tokenId, prescription } = req.body;
+
+  await db.query(
+    "UPDATE tokens SET prescription=$1 WHERE id=$2",
+    [prescription, tokenId]
+  );
+
+  res.json({ msg: "Saved ✅" });
+});
+
 app.post("/api/staff/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
 

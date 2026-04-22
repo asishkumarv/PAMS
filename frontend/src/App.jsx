@@ -14,6 +14,8 @@ import SetAppointment from "./pages/SetAppointment";
 import PatientBookToken from "./pages/PatientBookToken";
 import MyTokens from "./pages/MyTokens";
 import SendMessage from "./pages/SendMessage";
+import DoctorRegister from "./pages/DoctorRegister";
+import DoctorDashboard from "./pages/DoctorDashboard";
 
 function App() {
   return (
@@ -35,6 +37,8 @@ function App() {
         <Route path="/book-token" element={<BookToken />} />
         <Route path="/set-appointment" element={<SetAppointment />} />
         <Route path="/send-message" element={<SendMessage />} />
+        <Route path="/doctor-register" element={<DoctorRegister />} />
+        <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
         {/* Protected */}
 <Route
   path="/dashboard"

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import API from "../services/api";
 import PatientLayout from "../components/PatientLayout";
 import { QRCodeCanvas } from "qrcode.react";
+import Chatbot from "../components/ChatBot";
 
 export default function PatientBookToken() {
   const [form, setForm] = useState({
@@ -262,6 +263,7 @@ const qrData = token
 
       </div>
 )}
+<Chatbot />
     </PatientLayout>
   );
 }
