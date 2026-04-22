@@ -41,13 +41,21 @@ export default function TokenCard({ token }) {
     }
   };
 
+//   const save = async () => {
+//     await API.put("/api/tokens/prescription", {
+//       tokenId: token.id,
+//       prescription: text
+//     });
+//     alert("Prescription Saved ✅");
+//   };
   const save = async () => {
-    await API.put("/api/tokens/prescription", {
-      tokenId: token.id,
-      prescription: text
-    });
-    alert("Prescription Saved ✅");
-  };
+  const res = await API.post("/api/format", { text });
+
+  await API.put("/api/tokens/prescription", {
+    tokenId: token.id,
+    prescription: res.data.formatted
+  });
+};
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-4 sm:p-5 border border-gray-100 hover:shadow-xl transition">
