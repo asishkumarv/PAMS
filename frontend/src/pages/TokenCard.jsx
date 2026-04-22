@@ -48,13 +48,18 @@ export default function TokenCard({ token }) {
 //     });
 //     alert("Prescription Saved ✅");
 //   };
-  const save = async () => {
-  const res = await API.post("/api/format", { text });
+const save = async () => {
+  try {
+    await API.put("/api/tokens/prescription", {
+      tokenId: token.id,
+      prescription: text
+    });
 
-  await API.put("/api/tokens/prescription", {
-    tokenId: token.id,
-    prescription: res.data.formatted
-  });
+    alert("Prescription Saved ✅");
+
+  } catch (err) {
+    alert("Save failed ❌");
+  }
 };
 
   return (
