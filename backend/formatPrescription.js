@@ -6,7 +6,7 @@ const groq = new Groq({
 
 async function formatPrescription(rawText) {
   const response = await groq.chat.completions.create({
-    model: "llama3-70b-8192", // 🔥 free fast model
+    model: "llama-3.3-70b-versatile", // 🔥 free fast model
     messages: [
       {
         role: "system",
