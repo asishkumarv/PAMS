@@ -7,6 +7,7 @@ export default function MyTokens() {
   const [tokens, setTokens] = useState([]);
   const [user, setUser] = useState(null);
 const [showQRId, setShowQRId] = useState(null);
+const [showPrescription, setShowPrescription] = useState(null);
   // ✅ Load user from localStorage
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("patient"));
@@ -123,7 +124,17 @@ const cancelToken = async (id) => {
       ? "Arrived"
       : "Cancel"}
   </button>
-
+{/* 📄 PRESCRIPTION BUTTON */}
+{t.prescription && (
+  <button
+    onClick={() =>
+      setShowPrescription(showPrescription === t.id ? null : t.id)
+    }
+    className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 text-sm"
+  >
+    {showPrescription === t.id ? "Hide Prescription" : "View Prescription"}
+  </button>
+)}
 </div>
 
 {/* ✅ QR BLOCK (RIGHT PLACE) */}
@@ -144,6 +155,24 @@ const cancelToken = async (id) => {
       <p className="text-xs text-gray-500 mt-2 text-center">
         Scan at hospital desk 📱
       </p>
+
+    </div>
+
+  </div>
+)}
+{/* 📄 PRESCRIPTION VIEW */}
+{showPrescription === t.id && t.prescription && (
+  <div className="mt-4 flex justify-center">
+
+    <div className="bg-white border shadow-lg p-4 rounded-xl w-full max-w-md">
+
+      <h3 className="font-semibold text-blue-600 mb-2 text-center">
+        🩺 Prescription
+      </h3>
+
+      <div className="bg-gray-50 p-3 rounded text-sm whitespace-pre-line">
+        {t.prescription}
+      </div>
 
     </div>
 

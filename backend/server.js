@@ -131,16 +131,40 @@ app.get("/api/doctor/tokens/:id", async (req, res) => {
 
   res.json(result.rows);
 });
-
+const sendPrescriptionMail = require("./premailer");
 app.put("/api/tokens/prescription", async (req, res) => {
-  const { tokenId, prescription } = req.body;
+  try {
+    const { tokenId, prescription } = req.body;
 
-  await db.query(
-    "UPDATE tokens SET prescription=$1 WHERE id=$2",
-    [prescription, tokenId]
-  );
+    // 1️⃣ Update prescription
+    await db.query(
+      "UPDATE tokens SET prescription=$1 WHERE id=$2",
+      [prescription, tokenId]
+    );
 
-  res.json({ msg: "Saved ✅" });
+    // 2️⃣ Get patient details
+    const result = await db.query(`
+      SELECT p.email, p.name 
+      FROM tokens t
+      JOIN patients p ON t.patient_id = p.id
+      WHERE t.id = $1
+    `, [tokenId]);
+
+    const patient = result.rows[0];
+
+    // 3️⃣ Send email
+    await sendPrescriptionMail(
+      patient.email,
+      patient.name,
+      prescription
+    );
+
+    res.json({ msg: "Prescription saved & email sent ✅" });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ msg: "Error ❌" });
+  }
 });
 
 app.post("/api/staff/verify-otp", async (req, res) => {
