@@ -17,7 +17,7 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(res.data));
 
       if (role === "staff") nav("/sdashboard");
-      else nav("/ddashboard");
+      else nav("/doctor-dashboard");
 
     } catch {
       alert("Login failed ❌");

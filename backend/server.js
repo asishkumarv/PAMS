@@ -119,7 +119,7 @@ app.get("/api/doctor/tokens/:id", async (req, res) => {
     SELECT t.*, p.name AS patient_name
     FROM tokens t
     JOIN patients p ON t.patient_id = p.id
-    WHERE t.doc_id=$1 AND t.status='ARRIVED'
+    WHERE t.doctor=$1 AND t.status='ARRIVED'
   `,[id]);
 
   res.json(result.rows);
