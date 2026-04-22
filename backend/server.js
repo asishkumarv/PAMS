@@ -160,7 +160,7 @@ app.put("/api/tokens/prescription", async (req, res) => {
       SELECT p.email, p.name, d.name AS doctor_name
       FROM tokens t
       JOIN patients p ON t.patient_id = p.id
-      JOIN doctors d ON t.doctor_id = d.id
+      JOIN doctors d ON t.doctor = d.id
       WHERE t.id = $1
     `, [tokenId]);
 
