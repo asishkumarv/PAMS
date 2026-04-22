@@ -9,6 +9,7 @@ const transporter = require("./mailer");
 const QRCode = require("qrcode");
 const cron = require("node-cron");
 const twilio = require("twilio");
+// const OpenAI = require("openai");
 
 const gTTS = require("gtts");
 const fs = require("fs");
@@ -131,39 +132,62 @@ app.get("/api/doctor/tokens/:id", async (req, res) => {
 
   res.json(result.rows);
 });
+
+
 const sendPrescriptionMail = require("./premailer");
+const formatPrescription = require("./utils/formatPrescription");
 app.put("/api/tokens/prescription", async (req, res) => {
   try {
     const { tokenId, prescription } = req.body;
 
-    // 1️⃣ Update prescription
+    if (!tokenId || !prescription) {
+      return res.status(400).json({ msg: "Missing data ❌" });
+    }
+
+    // 🔥 1. FORMAT USING AI
+    let formatted = prescription;
+
+    try {
+      formatted = await formatPrescription(prescription);
+    } catch (err) {
+      console.log("AI formatting failed, using raw text ⚠️");
+    }
+
+    // 🔥 2. SAVE TO DB
     await db.query(
       "UPDATE tokens SET prescription=$1 WHERE id=$2",
-      [prescription, tokenId]
+      [formatted, tokenId]
     );
 
-    // 2️⃣ Get patient details
+    // 🔥 3. GET PATIENT DETAILS
     const result = await db.query(`
-      SELECT p.email, p.name 
+      SELECT p.email, p.name, d.name AS doctor_name
       FROM tokens t
       JOIN patients p ON t.patient_id = p.id
+      JOIN doctors d ON t.doctor_id = d.id
       WHERE t.id = $1
     `, [tokenId]);
 
     const patient = result.rows[0];
 
-    // 3️⃣ Send email
-    await sendPrescriptionMail(
-      patient.email,
-      patient.name,
-      prescription
-    );
+    // 🔥 4. SEND EMAIL
+    if (patient?.email) {
+      await sendPrescriptionMail(
+        patient.email,
+        patient.name,
+        formatted,
+        patient.doctor_name
+      );
+    }
 
-    res.json({ msg: "Prescription saved & email sent ✅" });
+    res.json({
+      msg: "Prescription saved, formatted & email sent ✅",
+      data: formatted
+    });
 
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: "Error ❌" });
+    console.log("ERROR:", err);
+    res.status(500).json({ msg: "Server error ❌" });
   }
 });
 

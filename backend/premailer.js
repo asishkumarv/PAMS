@@ -8,23 +8,23 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendPrescriptionMail = async (to, patientName, prescription) => {
+const sendPrescriptionMail = async (to, name, prescription, doctorName) => {
   const html = `
   <div style="font-family: Arial; background:#f4f6f9; padding:20px;">
     
-    <div style="max-width:600px;margin:auto;background:white;border-radius:10px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,0.1)">
+    <div style="max-width:600px;margin:auto;background:white;border-radius:12px;padding:20px;box-shadow:0 5px 20px rgba(0,0,0,0.1)">
       
-      <h2 style="color:#2563eb;">🩺 Prescription Update</h2>
+      <h2 style="color:#2563eb;">🩺 Prescription</h2>
 
-      <p>Hello <b>${patientName}</b>,</p>
+      <p>Hello <b>${name}</b>,</p>
 
-      <p>Your doctor has added a prescription for your appointment.</p>
+      <p>Your doctor <b>Dr. ${doctorName}</b> has provided a prescription.</p>
 
-      <div style="background:#f1f5f9;padding:15px;border-radius:8px;margin:15px 0;">
-        <p style="white-space:pre-line;">${prescription}</p>
+      <div style="background:#f1f5f9;padding:15px;border-radius:8px;margin:15px 0;white-space:pre-line;">
+        ${prescription}
       </div>
 
-      <p style="color:#555;">Please follow the instructions carefully.</p>
+      <p style="color:#555;">Follow instructions carefully.</p>
 
       <hr/>
 
@@ -39,7 +39,7 @@ const sendPrescriptionMail = async (to, patientName, prescription) => {
   await transporter.sendMail({
     from: `"PAMS Hospital" <${process.env.EMAIL_USER}>`,
     to,
-    subject: "Your Prescription Details 🩺",
+    subject: "Your Prescription 🩺",
     html,
   });
 };
