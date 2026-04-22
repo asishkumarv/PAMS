@@ -125,7 +125,7 @@ app.get("/api/doctor/tokens/:id", async (req, res) => {
       t.patient_name
     FROM tokens t
     
-    WHERE t.doctor = $1
+    WHERE t.doctor = $1 AND status='ARRIVED'
     ORDER BY t.date, t.time_slot
   `, [id]);
 
