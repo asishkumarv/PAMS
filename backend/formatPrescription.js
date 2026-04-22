@@ -17,7 +17,9 @@ Convert doctor speech into structured English prescription.
 
 IMPORTANT:
 - Input may be Hindi, Telugu, Tamil or mixed any indian language.
-- Translate everything to English
+- Translate everything to English but dont change medicine names and dont put translation messgae like below in the result:
+Translation:
+Take Paracetamol 500 mg in the morning and evening. And take Cetirizine 5 mg tablet in the morning and evening. 
 - Then format as:
 
 
